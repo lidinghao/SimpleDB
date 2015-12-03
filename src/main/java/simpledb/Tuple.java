@@ -93,7 +93,16 @@ public class Tuple implements Serializable {
      */
     public String toString() {
         // some code goes here
-        throw new UnsupportedOperationException("Implement this");
+        String str = new  String();
+        for (int i = 0; i < tuple.size() ; i++) {
+            str += tuple.get(i).toString();
+            if (i == tuple.size()-1)
+                str+='\n';
+            else
+                str +='\t';
+        }
+        return str;
+
     }
     
     /**
@@ -103,6 +112,6 @@ public class Tuple implements Serializable {
     public Iterator<Field> fields()
     {
         // some code goes here
-        return null;
+        return tuple.iterator();
     }
 }
