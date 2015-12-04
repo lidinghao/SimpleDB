@@ -54,9 +54,11 @@ public class RecordId implements Serializable {
     @Override
     public boolean equals(Object o) {
         // some code goes here
-        PageId rhs = (PageId) o;
+        RecordId rhs = (RecordId) o;
+        return pid == rhs.pid && tno == rhs.tno;
 
-        throw new UnsupportedOperationException("implement this");
+
+        //throw new UnsupportedOperationException("implement this");
     }
 
     /**
@@ -68,7 +70,8 @@ public class RecordId implements Serializable {
     @Override
     public int hashCode() {
         // some code goes here
-        throw new UnsupportedOperationException("implement this");
+        return pid.hashCode()+ tno;
+        //throw new UnsupportedOperationException("implement this");
 
     }
 
