@@ -53,7 +53,7 @@ public class BufferPool {
         throws TransactionAbortedException, DbException {
         // some code goes here
         Page page = pages.get(pid);
-        if(pages != null)
+        if(page != null)
             return page;
         else if(pages.size() < numPages){
             DbFile dbFile = Database.getCatalog().getDbFile(pid.getTableId());

@@ -66,7 +66,8 @@ public class HeapPage implements Page {
     */
     private int getNumTuples() {        
         // some code goes here
-        return 0;
+
+        return (BufferPool.PAGE_SIZE * 8 ) / ( td.getSize() * 8 + 1);
 
     }
 
@@ -74,10 +75,13 @@ public class HeapPage implements Page {
      * Computes the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      * @return the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      */
-    private int getHeaderSize() {        
-        
+    private int getHeaderSize() {
         // some code goes here
-        return 0;
+
+        if (numSlots % 8 != 0)
+            return (numSlots / 8) + 1;
+        else
+            return numSlots /8;
                  
     }
     
@@ -103,7 +107,7 @@ public class HeapPage implements Page {
      */
     public HeapPageId getId() {
     // some code goes here
-    throw new UnsupportedOperationException("implement this");
+        return pid;
     }
 
     /**
@@ -236,6 +240,7 @@ public class HeapPage implements Page {
     public void deleteTuple(Tuple t) throws DbException {
         // some code goes here
         // not necessary for lab1
+
     }
 
     /**
@@ -273,7 +278,13 @@ public class HeapPage implements Page {
      */
     public int getNumEmptySlots() {
         // some code goes here
-        return 0;
+
+        int count = 0;
+        for (int i = 0; i < numSlots ; i++) {
+            if (!isSlotUsed(i))
+                count++;
+        }
+        return count;
     }
 
     /**
@@ -281,7 +292,17 @@ public class HeapPage implements Page {
      */
     public boolean isSlotUsed(int i) {
         // some code goes here
-        return false;
+        int pos =  i / 8; //floor comes for  free
+        byte b = header[pos];
+
+        int bitoffset  = i % 8;
+
+        byte bimask = 0;
+        bimask |= (1 << bitoffset);
+        if ((bimask & b) == bimask)
+           return true;
+        else
+            return false;
     }
 
     /**
@@ -298,7 +319,31 @@ public class HeapPage implements Page {
      */
     public Iterator<Tuple> iterator() {
         // some code goes here
-        return null;
+        return new Iterator<Tuple>() {
+            int current = 0;
+            public boolean hasNext() {
+                for (int i = current; i < numSlots ; i++) {
+                    if (isSlotUsed(i))
+                        return true;
+                }
+                return false;
+            }
+
+            public Tuple next() {
+                while (current < numSlots){
+                    if(isSlotUsed(current)){
+                        return tuples[current++];
+                    }
+
+                }
+                return null;
+            }
+
+            public void remove() {
+                //throw new  UnsupportedEncodingException("");
+            }
+        };
+
     }
 
 }

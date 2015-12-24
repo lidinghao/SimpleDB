@@ -24,7 +24,7 @@ public class RecordId implements Serializable {
     public RecordId(PageId pid, int tupleno) {
         // some code goes here
         this.pid = pid;
-        tupleno = tupleno;
+        tno = tupleno;
     }
 
     /**
