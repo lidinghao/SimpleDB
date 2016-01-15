@@ -189,7 +189,8 @@ public class Catalog {
      */
     public void loadSchema(String catalogFile) {
         String line = "";
-        String baseFolder=new File(catalogFile).getParent();
+        String absolutePath=new File(catalogFile).getAbsolutePath();
+        String baseFolder=new File(absolutePath).getParent();
         try {
             BufferedReader br = new BufferedReader(new FileReader(new File(catalogFile)));
 
