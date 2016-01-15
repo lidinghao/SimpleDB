@@ -1,4 +1,4 @@
-package systemtest;
+package simpledb.systemtest;
 
 import java.io.File;
 import java.io.IOException;

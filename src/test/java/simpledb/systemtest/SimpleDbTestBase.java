@@ -1,4 +1,4 @@
-package systemtest;
+package simpledb.systemtest;
 
 import org.junit.Before;
 

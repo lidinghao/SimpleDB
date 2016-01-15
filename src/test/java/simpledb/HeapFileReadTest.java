@@ -1,7 +1,7 @@
 package simpledb;
 
-import systemtest.SimpleDbTestBase;
-import systemtest.SystemTestUtil;
+import simpledb.systemtest.SimpleDbTestBase;
+import simpledb.systemtest.SystemTestUtil;
 
 import java.util.*;
 import org.junit.After;

@@ -20,6 +20,8 @@ public class HeapPage implements Page {
     int numSlots;
 
     byte[] oldData;
+    private boolean isDirty;
+    private TransactionId dirtyTrans;
 
     /**
      * Create a HeapPage from a set of bytes of data read from disk.
@@ -71,6 +73,9 @@ public class HeapPage implements Page {
 
     }
 
+    public int getNumSlots(){
+        return numSlots;
+    }
     /**
      * Computes the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      * @return the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
@@ -240,7 +245,13 @@ public class HeapPage implements Page {
     public void deleteTuple(Tuple t) throws DbException {
         // some code goes here
         // not necessary for lab1
-
+        int tno = t.getRecordId().tno;
+        if (tno > numSlots || !isSlotUsed(tno) || !tuples[tno].equals(t)) {
+            throw new DbException("tuple doesn't exist");
+        } else {
+            tuples[tno] = null;
+            markSlotUsed(tno, false);
+        }
     }
 
     /**
@@ -253,6 +264,18 @@ public class HeapPage implements Page {
     public void insertTuple(Tuple t) throws DbException {
         // some code goes here
         // not necessary for lab1
+
+        if (getNumEmptySlots() ==0){
+            throw new DbException("insert tuple into full page");
+        }
+        for (int i = 0; i < numSlots ; i++) {
+            if (!isSlotUsed(i)) {
+                t.setRecordId(new RecordId(getId(), i));
+                tuples[i] = t;
+                markSlotUsed(i, true);
+                return;
+            }
+        }
     }
 
     /**
@@ -262,6 +285,9 @@ public class HeapPage implements Page {
     public void markDirty(boolean dirty, TransactionId tid) {
         // some code goes here
 	// not necessary for lab1
+         isDirty = dirty;
+         dirtyTrans = tid;
+
     }
 
     /**
@@ -269,8 +295,13 @@ public class HeapPage implements Page {
      */
     public TransactionId isDirty() {
         // some code goes here
-	// Not necessary for lab1
-        return null;      
+	    // Not necessary for lab1
+        if (isDirty) {
+            return dirtyTrans;
+
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -308,9 +339,27 @@ public class HeapPage implements Page {
     /**
      * Abstraction to fill or clear a slot on this page.
      */
-    private void markSlotUsed(int i, boolean value) {
+    public void markSlotUsed(int i, boolean value) {
         // some code goes here
         // not necessary for lab1
+        // some code goes here
+        int pos =  i / 8; //floor comes for  free
+        byte b = header[pos];
+
+        int bitoffset  = i % 8;
+
+        byte bitmask = 0;
+        if(value){
+
+            b |= (1 << bitoffset);
+
+        }else {
+
+            bitmask |= (1 << bitoffset);
+            bitmask = (byte) ~bitmask;
+            b &= bitmask;
+        }
+        header[pos] =b;
     }
 
     /**

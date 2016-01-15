@@ -49,9 +49,11 @@ public class Catalog {
 
 
     Map<String,Table> tables ;
+    Map<Integer, Table> tablesById;
     public Catalog() {
-        tables = new HashMap<String,Table>();
+        tables = new HashMap<>();
         // some code goes here
+        tablesById = new HashMap<>();
 
     }
 
@@ -66,7 +68,9 @@ public class Catalog {
      */
     public void addTable(DbFile file, String name, String pkeyField) {
         // some code goes here
-        tables.put(name,new Table(file, pkeyField));
+        Table table = new Table(file, pkeyField);
+        tables.put(name, table);
+        tablesById.put(file.getId(), table);
 
 
     }
@@ -158,16 +162,24 @@ public class Catalog {
 
     public Iterator<Integer> tableIdIterator() {
         // some code goes here
-        return null;
+
+        return tablesById.keySet().iterator();
     }
 
     public String getTableName(int id) {
         // some code goes here
+        for (Map.Entry<String, Table> table : tables.entrySet()) {
+            if (table.getValue().getFile().getId() == id) {
+                return table.getKey();
+            }
+        }
         return null;
     }
 
     /** Delete all tables from the catalog */
     public void clear() {
+        tables = new HashMap<>();
+        tablesById = new HashMap<>();
         // some code goes here
     }
 

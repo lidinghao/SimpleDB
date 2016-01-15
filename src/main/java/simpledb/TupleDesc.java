@@ -136,6 +136,11 @@ public class TupleDesc implements Serializable {
      */
     public int fieldNameToIndex(String name) throws NoSuchElementException {
         // some code goes here
+        if (name.contains(".")){
+            int i = name.indexOf(".");
+            name = name.substring(i+1);
+        }
+
         for(int i =0; i< tuple.size();i++){
             if(tuple.get(i).fieldName!=null && tuple.get(i).fieldName.equals(name))
                 return i;

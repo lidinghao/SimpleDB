@@ -4,7 +4,7 @@ import java.util.NoSuchElementException;
 
 import org.junit.Test;
 
-import systemtest.SimpleDbTestBase;
+import simpledb.systemtest.SimpleDbTestBase;
 
 import static org.junit.Assert.*;
 import junit.framework.Assert;

@@ -1,6 +1,9 @@
 package simpledb;
 
 import java.io.*;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +26,8 @@ public class BufferPool {
     public static final int DEFAULT_PAGES = 50;
     private int numPages;
     private Map<PageId,Page> pages;
+    private Map<PageId,Timestamp> timeStamp;
+    private Date date = new Date();
     /**
      * Creates a BufferPool that caches up to numPages pages.
      *
@@ -31,7 +36,9 @@ public class BufferPool {
     public BufferPool(int numPages) {
         // some code goes here
         this.numPages = numPages;
-        pages  = new HashMap<PageId, Page>();
+        pages  = new HashMap<>();
+        timeStamp  = new HashMap<>();
+
     }
 
     /**
@@ -53,15 +60,19 @@ public class BufferPool {
         throws TransactionAbortedException, DbException {
         // some code goes here
         Page page = pages.get(pid);
-        if(page != null)
-            return page;
-        else if(pages.size() < numPages){
-            DbFile dbFile = Database.getCatalog().getDbFile(pid.getTableId());
-            page = dbFile.readPage(pid);
-            pages.put(pid, page);
-            return page;
-        }else
-            throw new DbException("to much pages");
+         if (page == null){
+
+             if (pages.size() == DEFAULT_PAGES) {
+                 evictPage();
+             }
+             DbFile dbFile = Database.getCatalog().getDbFile(pid.getTableId());
+             page = dbFile.readPage(pid);
+             pages.put(pid, page);
+
+        }
+
+        timeStamp.put(pid, new Timestamp(date.getTime()));
+        return page;
 
 
     }
@@ -128,7 +139,20 @@ public class BufferPool {
         throws DbException, IOException, TransactionAbortedException {
         // some code goes here
         // not necessary for proj1
+        DbFile file = Database.getCatalog().getDbFile(tableId);
+        ArrayList<Page> list = file.insertTuple(tid, t);
+        for (Page page : list) {
+            page.markDirty(true,tid);
+            if (pages.containsKey(page.getId())) {
+                pages.put(page.getId(),page);
+            }
+
+
+        }
     }
+
+
+
 
     /**
      * Remove the specified tuple from the buffer pool.
@@ -147,6 +171,9 @@ public class BufferPool {
         throws DbException, TransactionAbortedException {
         // some code goes here
         // not necessary for proj1
+        DbFile file = Database.getCatalog().getDbFile(t.getRecordId().getPageId().getTableId());
+        Page page = file.deleteTuple(tid, t);
+        page.markDirty(true,tid);
     }
 
     /**
@@ -157,6 +184,9 @@ public class BufferPool {
     public synchronized void flushAllPages() throws IOException {
         // some code goes here
         // not necessary for proj1
+        for (PageId pid : pages.keySet()) {
+            flushPage(pid);
+        }
 
     }
 
@@ -177,6 +207,15 @@ public class BufferPool {
     private synchronized  void flushPage(PageId pid) throws IOException {
         // some code goes here
         // not necessary for proj1
+        Page page = pages.get(pid);
+        if (page.isDirty() != null) {
+            int tableId = pid.getTableId();
+            DbFile file = Database.getCatalog().getDbFile(tableId);
+            file.writePage(page);
+
+        }
+
+
     }
 
     /** Write all pages of the specified transaction to disk.
@@ -193,6 +232,18 @@ public class BufferPool {
     private synchronized  void evictPage() throws DbException {
         // some code goes here
         // not necessary for proj1
+        Map.Entry<PageId, Timestamp> LRUPage = timeStamp.entrySet().iterator().next();
+        for (Map.Entry<PageId,Timestamp> ts : timeStamp.entrySet()) {
+            if (LRUPage.getValue().after(ts.getValue()))
+                LRUPage = ts;
+        }
+        try {
+            flushPage(LRUPage.getKey());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        pages.remove(LRUPage.getKey());
+        timeStamp.remove(LRUPage.getKey());
     }
 
 }

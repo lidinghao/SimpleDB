@@ -43,7 +43,6 @@ public class HeapPageWriteTest extends SimpleDbTestBase {
         dirtier = page.isDirty();
         assertEquals(false, dirtier != null);
     }
-
     /**
      * Unit test for HeapPage.addTuple()
      */

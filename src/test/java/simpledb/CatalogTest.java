@@ -11,8 +11,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import simpledb.TestUtil.SkeletonFile;
-import systemtest.SimpleDbTestBase;
-import systemtest.SystemTestUtil;
+import simpledb.systemtest.SimpleDbTestBase;
+import simpledb.systemtest.SystemTestUtil;
 
 public class CatalogTest extends SimpleDbTestBase {
     private static String name = "test";

@@ -1,8 +1,8 @@
 package simpledb;
 
 import simpledb.TestUtil.SkeletonFile;
-import systemtest.SimpleDbTestBase;
-import systemtest.SystemTestUtil;
+import simpledb.systemtest.SimpleDbTestBase;
+import simpledb.systemtest.SystemTestUtil;
 
 import java.io.File;
 import java.io.IOException;

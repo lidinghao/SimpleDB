@@ -5,8 +5,15 @@
   <groupId>simpledb</groupId>
   <artifactId>simpledb</artifactId>
   <version>1.0-SNAPSHOT</version>
+  <repositories>
+    <repository>
+      <id>my</id>
+      <url>file://${basedir}/lib_managed/</url>
+    </repository>
+  </repositories>
   <build>
     <plugins>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -15,6 +22,7 @@
           <target>1.7</target>
         </configuration>
       </plugin>
+
       <plugin>
         <!-- Build an executable JAR -->
         <groupId>org.apache.maven.plugins</groupId>
@@ -29,6 +37,30 @@
           </archive>
         </configuration>
       </plugin>
+
+      <plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <executions>
+            <execution>
+              <phase>package</phase>
+              <goals>
+                <goal>single</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <descriptorRefs>
+              <descriptorRef>jar-with-dependencies</descriptorRef>
+            </descriptorRefs>
+            <archive>
+              <manifest>
+                <!--<addClasspath>true</addClasspath>-->
+                <mainClass>simpledb.SimpleDb</mainClass>
+              </manifest>
+            </archive>
+          </configuration>
+        </plugin>
+
     </plugins>
   </build>
   <packaging>jar</packaging>
@@ -76,5 +108,11 @@
       <artifactId>jzlib</artifactId>
       <version>1.0.7</version>
     </dependency>
+    <dependency>
+      <groupId>Zql</groupId>
+      <artifactId>Zql</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+
   </dependencies>
 </project>
