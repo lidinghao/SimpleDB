@@ -11,7 +11,7 @@ public class Join extends Operator {
     private JoinPredicate predicate;
     private DbIterator child1;
     private DbIterator child2;
-    private Tuple currentTuple1 = null;
+    private Tuple currentLeftTuple = null;
 
     /**
      * Constructor. Accepts to children to join and the predicate to join them
@@ -72,13 +72,13 @@ public class Join extends Operator {
         // some code goes here
         super.open();
         child1.open();
-        currentTuple1 = child1.next();
+        currentLeftTuple = child1.next();
         child2.open();
     }
 
     public void close() {
         // some code goes here
-        currentTuple1 = null;
+        currentLeftTuple = null;
         child1.close();
         child2.close();
     }
@@ -88,7 +88,7 @@ public class Join extends Operator {
         child1.rewind();
         child2.rewind();
         if(child1.hasNext())
-        currentTuple1 = child1.next();
+        currentLeftTuple = child1.next();
     }
 
     /**
@@ -111,18 +111,18 @@ public class Join extends Operator {
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
         // some code goes here
-        while (currentTuple1 != null){
+        while (currentLeftTuple != null){
 
             while (child2.hasNext()){
                 Tuple tuple2 = child2.next();
-                if (predicate.filter(currentTuple1,tuple2))
-                    return Tuple.merge(currentTuple1,tuple2);
+                if (predicate.filter(currentLeftTuple,tuple2))
+                    return Tuple.merge(currentLeftTuple,tuple2);
             }
             child2.rewind();
             if(child1.hasNext())
-              currentTuple1 = child1.next();
+              currentLeftTuple = child1.next();
             else
-                currentTuple1 =null;
+                currentLeftTuple =null;
         }
 
         return null;
