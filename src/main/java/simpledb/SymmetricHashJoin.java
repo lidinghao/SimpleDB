@@ -13,6 +13,17 @@ public class SymmetricHashJoin extends Operator {
     private HashMap<Object, ArrayList<Tuple>> leftMap = new HashMap<Object, ArrayList<Tuple>>();
     private HashMap<Object, ArrayList<Tuple>> rightMap = new HashMap<Object, ArrayList<Tuple>>();
 
+    private DbIterator innerRelation;
+    private DbIterator outerRelation;
+    private State state;
+    private boolean runOut = false;
+
+    private class State{
+        Iterator<Tuple> probePosition = null;
+        Tuple currentTuple = null;
+        boolean isSwitched = true;
+        boolean isOnInner = true;
+    }
      /**
      * Constructor. Accepts children to join and the predicate to join them on.
      * 
@@ -27,6 +38,9 @@ public class SymmetricHashJoin extends Operator {
         this.pred = p;
         this.child1 = child1;
         this.child2 = child2;
+        innerRelation = child1;
+        outerRelation = child2;
+        state = new State();
         comboTD = TupleDesc.merge(child1.getTupleDesc(), child2.getTupleDesc());
     }
 
@@ -40,6 +54,9 @@ public class SymmetricHashJoin extends Operator {
     public void open() throws DbException, NoSuchElementException,
             TransactionAbortedException {
         // IMPLEMENT ME
+        super.open();
+        child1.open();
+        child2.open();
     }
 
     /**
@@ -47,6 +64,8 @@ public class SymmetricHashJoin extends Operator {
      */
     public void close() {
         // IMPLEMENT ME
+        child1.close();
+        child2.close();
     }
 
     /**
@@ -57,6 +76,8 @@ public class SymmetricHashJoin extends Operator {
         child2.rewind();
         this.leftMap.clear();
         this.rightMap.clear();
+        String rewind = "rewind";
+        System.out.println(rewind);
     }
 
     /**
@@ -74,16 +95,116 @@ public class SymmetricHashJoin extends Operator {
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
         // IMPLEMENT ME
+        while (!runOut) {
+            Iterator<Tuple> iter = state.probePosition;
+            while (iter!=null && iter.hasNext()) {
+                Tuple tuple = state.probePosition.next();
+                if (pred.filter(tuple, state.currentTuple)) {
+                    return state.isSwitched ?Tuple.merge(tuple,state.currentTuple)
+                            :Tuple.merge(state.currentTuple,tuple);
+                }
+            }
+            switchRelations();
+        }
         return null;
     }
 
     /**
      * Switches the inner and outer relation.
      */
+    int i = 0;
     private void switchRelations() throws TransactionAbortedException, DbException {
+        if (!innerRelation.hasNext() && !outerRelation.hasNext()){
+            runOut = true;
+            return;
+        }else if (!innerRelation.hasNext() && outerRelation.hasNext()){
+            state.isSwitched = true;
+            state.currentTuple = outerRelation.next();
+            Field field = state.currentTuple.getField(pred.getField2());
+            insertTuple(rightMap, state.currentTuple, field);
+            System.out.println(state.currentTuple.toString());
+
+            ArrayList<Tuple> bucket = leftMap.get(field);
+            state.probePosition = bucket != null? bucket.iterator() : null;
+            return;
+        } else if (!outerRelation.hasNext() && innerRelation.hasNext()) {
+           state.isSwitched = false;
+            state.currentTuple = innerRelation.next();
+            Field field = state.currentTuple.getField(pred.getField1());
+
+            //System.out.println(state.currentTuple.toString());
+            insertTuple(leftMap, state.currentTuple, field);
+            System.out.println(state.currentTuple.toString());
+
+            ArrayList<Tuple> bucket = rightMap.get(field);
+            state.probePosition = bucket != null ? bucket.iterator() : null;
+            return;
+        }
+
+        if (state.isSwitched) {
+            System.out.println(i++);
+            state.isSwitched = false;
+            state.currentTuple = innerRelation.next();
+            Field field = state.currentTuple.getField(pred.getField1());
+
+            insertTuple(leftMap, state.currentTuple, field);
+            System.out.println(state.currentTuple.toString());
+
+            ArrayList<Tuple> bucket = rightMap.get(field);
+            state.probePosition = bucket != null ? bucket.iterator() : null;
+        } else {
+            state.isSwitched = true;
+            state.currentTuple = outerRelation.next();
+            Field field = state.currentTuple.getField(pred.getField2());
+            insertTuple(rightMap, state.currentTuple, field);
+            System.out.println(state.currentTuple.toString());
+            ArrayList<Tuple> bucket = leftMap.get(field);
+            state.probePosition = bucket != null? bucket.iterator() : null;
+        }
+        // IMPLEMENT ME
+    }
+    private void switchRelations2() throws TransactionAbortedException, DbException {
+        if (innerRelation.hasNext() && outerRelation.hasNext()) {
+
+        }
+
+        if (state.isSwitched) {
+            System.out.println(i++);
+            state.isSwitched = false;
+            state.currentTuple = innerRelation.next();
+            Field field = state.currentTuple.getField(pred.getField1());
+
+            System.out.println(state.currentTuple.toString());
+            insertTuple(leftMap, state.currentTuple, field);
+            System.out.println(state.currentTuple.toString());
+
+            ArrayList<Tuple> bucket = rightMap.get(field);
+            state.probePosition = bucket != null ? bucket.iterator() : null;
+        } else if (!state.isSwitched && outerRelation.hasNext()){
+            state.isSwitched = true;
+            state.currentTuple = outerRelation.next();
+           // System.out.println(state.currentTuple.toString());
+            Field field = state.currentTuple.getField(pred.getField2());
+            insertTuple(rightMap, state.currentTuple, field);
+            ArrayList<Tuple> bucket = leftMap.get(field);
+            state.probePosition = bucket != null? bucket.iterator() : null;
+        }
         // IMPLEMENT ME
     }
 
+private void insertTuple(HashMap<Object, ArrayList<Tuple>> map, Tuple tuple, Field field) {
+
+    ArrayList<Tuple> tuples = map.get(field);
+    if (tuples != null) {
+        tuples.add(tuple);
+    } else {
+        tuples = new ArrayList<>();
+        tuples.add(tuple);
+        map.put(field, tuples);
+    }
+
+
+}
     @Override
     public DbIterator[] getChildren() {
         return new DbIterator[]{this.child1, this.child2};
