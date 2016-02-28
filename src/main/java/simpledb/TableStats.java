@@ -1,18 +1,18 @@
 package simpledb;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * TableStats represents statistics (e.g., histograms) about base tables in a
  * query. 
- * 
- * This class is not needed in implementing proj1 and proj2.
  */
 public class TableStats {
 
+    /**
+     * These static variables and methods helps the database access TableStats
+     * for any given table.
+     */
     private static final ConcurrentHashMap<String, TableStats> statsMap = new ConcurrentHashMap<String, TableStats>();
 
     static final int IOCOSTPERPAGE = 1000;
@@ -25,8 +25,7 @@ public class TableStats {
         statsMap.put(tablename, stats);
     }
     
-    public static void setStatsMap(HashMap<String,TableStats> s)
-    {
+    public static void setStatsMap(HashMap<String,TableStats> s) {
         try {
             java.lang.reflect.Field statsMapF = TableStats.class.getDeclaredField("statsMap");
             statsMapF.setAccessible(true);
@@ -59,12 +58,12 @@ public class TableStats {
         System.out.println("Done.");
     }
 
-    /**
-     * Number of bins for the histogram. Feel free to increase this value over
-     * 100, though our tests assume that you have at least 100 bins in your
-     * histograms.
-     */
     static final int NUM_HIST_BINS = 100;
+    private final int ioCostPerPage;
+    private final TupleDesc tupleDesc;
+    private int numPages, numTuples;
+    private ArrayList fieldHistogram;
+    // TODO: add any fields that you may need
 
     /**
      * Create a new TableStats object, that keeps track of statistics on each
@@ -77,19 +76,78 @@ public class TableStats {
      *            sequential-scan IO and disk seeks.
      */
     public TableStats(int tableid, int ioCostPerPage) {
-        // For this function, you'll have to get the
-        // DbFile for the table in question,
-        // then scan through its tuples and calculate
-        // the values that you need.
-        // You should try to do this reasonably efficiently, but you don't
-        // necessarily have to (for example) do everything
-        // in a single scan of the table.
-        // some code goes here
+        // For this function, we use the DbFile for the table in question,
+        // then scan through its tuples and calculate the values that you
+        // to build the histograms.
+
+        // TODO: Fill out the rest of the constructor.
+        // Feel free to change anything already written, it's only a guideline
+
+        this.ioCostPerPage = ioCostPerPage;
+        DbFile file = Database.getCatalog().getDbFile(tableid);
+        tupleDesc = file.getTupleDesc();
+        numPages = ((HeapFile) file).numPages();
+        numTuples = 0;
+
+        int numFields = tupleDesc.numFields();
+        fieldHistogram = new ArrayList(numFields);
+        // TODO: what goes here?
+        prepareHistograms(tupleDesc);
+        final DbFileIterator iter = file.iterator(null);
+        try {
+            iter.open();
+
+            while (iter.hasNext()) {
+                Tuple t = iter.next();
+                numTuples++;
+                populateHistogram(t);
+                // TODO: and here?
+            }
+            iter.close();
+        } catch (DbException e) {
+            e.printStackTrace();
+        } catch (TransactionAbortedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void prepareHistograms(TupleDesc tupleDesc) {
+        // add histo and set bin
+        int numFields = tupleDesc.numFields();
+        for (int i = 0; i < numFields; i++) {
+            Type type = tupleDesc.getFieldType(i);
+            if (type == Type.INT_TYPE) {
+                IntStatistics stats = new IntStatistics(NUM_HIST_BINS);
+                fieldHistogram.add(i, stats);
+            } else if (type == Type.STRING_TYPE){
+                StringHistogram hist = new StringHistogram(NUM_HIST_BINS);
+                fieldHistogram.add(i, hist);
+            }
+        }
+    }
+
+
+
+    private void populateHistogram(Tuple t) {
+
+        int numFields = t.getTupleDesc().numFields();
+        for (int i = 0; i < numFields; i++) {
+            Type type = t.getTupleDesc().getFieldType(i);
+            if (type == Type.INT_TYPE) {
+                IntStatistics stats = (IntStatistics) fieldHistogram.get(i);
+                int value = ((IntField) t.getField(i)).getValue();
+                stats.addValue(value);
+            } else if (type == Type.STRING_TYPE) {
+                StringHistogram hist = (StringHistogram) fieldHistogram.get(i);
+                String value = ((StringField) t.getField(i)).getValue();
+                hist.addValue(value);
+            }
+        }
     }
 
     /**
      * Estimates the cost of sequentially scanning the file, given that the cost
-     * to read a page is costPerPageIO. You can assume that there are no seeks
+     * to read a page is ioCostPerPage. You can assume that there are no seeks
      * and that no pages are in the buffer pool.
      * 
      * Also, assume that your hard drive can only read entire pages at once, so
@@ -100,8 +158,8 @@ public class TableStats {
      * @return The estimated cost of scanning the table.
      */
     public double estimateScanCost() {
-        // some code goes here
-        return 0;
+        // TODO: some code goes here
+        return numPages * ioCostPerPage;
     }
 
     /**
@@ -114,23 +172,8 @@ public class TableStats {
      *         selectivityFactor
      */
     public int estimateTableCardinality(double selectivityFactor) {
-        // some code goes here
-        return 0;
-    }
-
-    /**
-     * The average selectivity of the field under op.
-     * @param field
-     *        the index of the field
-     * @param op
-     *        the operator in the predicate
-     * The semantic of the method is that, given the table, and then given a
-     * tuple, of which we do not know the value of the field, return the
-     * expected selectivity. You may estimate this value from the histograms.
-     * */
-    public double avgSelectivity(int field, Predicate.Op op) {
-        // some code goes here
-        return 1.0;
+        // TODO: some code goes here
+        return (int) (numTuples * selectivityFactor);
     }
 
     /**
@@ -147,16 +190,29 @@ public class TableStats {
      *         predicate
      */
     public double estimateSelectivity(int field, Predicate.Op op, Field constant) {
-        // some code goes here
-        return 1.0;
+        // TODO: some code goes here
+        if (tupleDesc.getFieldType(field) == Type.INT_TYPE) {
+            IntStatistics stats = (IntStatistics) fieldHistogram.get(field);
+            return stats.estimateSelectivity(op, ((IntField) constant).getValue());
+        } else {
+            StringHistogram hist = (StringHistogram) fieldHistogram.get(field);
+            return hist.estimateSelectivity(op, ((StringField) constant).getValue());
+        }
     }
 
     /**
-     * return the total number of tuples in this table
+     * The average selectivity of the field under op.
+     * @param field
+     *        the index of the field
+     * @param op
+     *        the operator in the predicate
+     * The semantic of the method is that, given the table, and then given a
+     * tuple, of which we do not know the value of the field, return the
+     * expected selectivity. You may estimate this value from the histograms.
      * */
-    public int totalTuples() {
-        // some code goes here
-        return 0;
+    public double avgSelectivity(int field, Predicate.Op op) {
+        // optional: implement for a more nuanced estimation, or for skillz
+        return 1.0;
     }
 
 }

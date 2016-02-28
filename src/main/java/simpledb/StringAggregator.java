@@ -1,6 +1,8 @@
 package simpledb;
 
+// <silentstrip proj1|proj2>
 import java.util.*;
+// </silentstrip>
 
 /**
  * Knows how to compute some aggregate over a set of StringFields.
@@ -8,16 +10,12 @@ import java.util.*;
 public class StringAggregator implements Aggregator {
 
     private static final long serialVersionUID = 1L;
+    private Op what;
     private int gbfield;
-    Type gbfieldtype;
-    int aggregateField;
-    boolean hasGroupBy;
-    Op aggreator;
-    private Map<Field,Integer> aggregateVal;
-    private int noGroupByVal;
-    private Map<Field,Field> gbMap;
-private List<Tuple> aggregateResult;
-    private boolean isFirst;
+    private Type gbfieldtype;
+    private int afield;
+    // a map of groupVal -> AggregateFields
+    private HashMap<String, AggregateFields> groups;
 
     /**
      * Aggregate constructor
@@ -29,17 +27,13 @@ private List<Tuple> aggregateResult;
      */
 
     public StringAggregator(int gbfield, Type gbfieldtype, int afield, Op what) {
-        // some code goes here
-        this.gbfield = gbfield;
-        this.gbfieldtype = gbfieldtype;
-        this.aggregateField = afield;
-        this.aggreator = what;
-        this.gbMap = new HashMap<Field, Field>();
-        this.aggregateResult = new LinkedList<>();
-        this.aggregateVal = new HashMap<>();
-        hasGroupBy = (gbfieldtype == null ? false : true);
+        this.what = what;
         if (what != Op.COUNT)
-            throw  new IllegalArgumentException("");
+            throw new IllegalArgumentException("Invalid operator type " + what);
+        this.gbfield = gbfield;
+        this.afield = afield;
+        this.gbfieldtype = gbfieldtype;
+        this.groups = new HashMap<String, AggregateFields>();
     }
 
     /**
@@ -47,23 +41,17 @@ private List<Tuple> aggregateResult;
      * @param tup the Tuple containing an aggregate field and a group-by field
      */
     public void mergeTupleIntoGroup(Tuple tup) {
-        // some code goes here
-        if (gbfieldtype == null){
-            noGroupByVal++;
-
-        }else{
-            Field gbKey = tup.getField(gbfield);
-            if(aggregateVal.containsKey(gbKey)) {
-            int countSoFar  = aggregateVal.get(gbKey);
-                switch (aggreator) {
-                    case COUNT:
-                        aggregateVal.put(gbKey,++countSoFar);
-
-                }
-            }else{
-                aggregateVal.put(gbKey,1);
-            }
+        String groupVal = "";
+        if (gbfield != NO_GROUPING) {
+            groupVal = tup.getField(gbfield).toString();
         }
+        AggregateFields agg = groups.get(groupVal);
+        if (agg == null)
+            agg = new AggregateFields(groupVal);
+
+        agg.count++;
+
+        groups.put(groupVal, agg);
     }
 
     /**
@@ -75,60 +63,51 @@ private List<Tuple> aggregateResult;
      *   aggregate specified in the constructor.
      */
     public DbIterator iterator() {
-        return new DbIterator() {
-            boolean isFirst = true;
-            Iterator<Tuple> iter ;
-            @Override
-            public void open() throws DbException, TransactionAbortedException {
-                if (hasGroupBy){
-                    for (Map.Entry<Field, Integer> entry : aggregateVal.entrySet()){
-                        Tuple tuple = new Tuple(getTupleDesc());
-                        tuple.setField(0, entry.getKey());
-                        tuple.setField(1, new IntField(entry.getValue()));
-                        aggregateResult.add(tuple);
-                    }
-                }else {
-                    Tuple tuple = new Tuple(getTupleDesc());
-                    tuple.setField(0, new IntField(noGroupByVal));
-                    aggregateResult.add(tuple);
-                }
-                iter = aggregateResult.iterator();
+        LinkedList<Tuple> result = new LinkedList<Tuple>();
+        int aggField = 1;
+        TupleDesc td;
 
-            }
-            @Override
-            public boolean hasNext() throws DbException, TransactionAbortedException {
-                    return iter.hasNext();
+        if (gbfield == NO_GROUPING) {
+            td = new TupleDesc(new Type[] { Type.INT_TYPE });
+            aggField = 0;
+        } else {
+            td = new TupleDesc(new Type[] { gbfieldtype, Type.INT_TYPE });
+        }
+
+        // iterate over groups and create summary tuples
+        for (String groupVal : groups.keySet()) {
+            AggregateFields agg = groups.get(groupVal);
+            Tuple tup = new Tuple(td);
+
+            if (gbfield != NO_GROUPING) {
+                if (gbfieldtype == Type.INT_TYPE)
+                    tup.setField(0, new IntField(new Integer(groupVal)));
+                else tup.setField(0, new StringField(groupVal, Type.STRING_LEN));
             }
 
-
-            @Override
-            public Tuple next() throws DbException, TransactionAbortedException, NoSuchElementException {
-                    return iter.next();
-
-
+            switch (what) {
+            case COUNT: tup.setField(aggField, new IntField(agg.count));
+            break;
             }
 
-            @Override
-            public void rewind() throws DbException, TransactionAbortedException {
-                iter = aggregateResult.iterator();
-            }
+            result.add(tup);
+        }
 
-            @Override
-            public TupleDesc getTupleDesc() {
-                if (hasGroupBy){
-                    return new TupleDesc(new Type[]{gbfieldtype, Type.INT_TYPE});
-
-                }else {
-                    return new TupleDesc(new Type[]{Type.INT_TYPE});
-                }
-            }
-
-            @Override
-            public void close() {
-iter = null;
-            }
-        };
-        // some code goes here
+        DbIterator retVal = null;
+        retVal = new TupleIterator(td, Collections.unmodifiableList(result));
+        return retVal;
     }
 
+    /**
+     * A helper struct to store accumulated aggregate values.
+     */
+    private class AggregateFields {
+        public String groupVal;
+        public int count;
+
+        public AggregateFields(String groupVal) {
+            this.groupVal = groupVal;
+            count = 0;
+        }
+    }
 }

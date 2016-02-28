@@ -11,7 +11,7 @@ import java.io.*;
  * DbFiles are generally accessed through the buffer pool, rather than directly
  * by operators.
  */
-public interface DbFile extends Serializable {
+public interface DbFile {
     /**
      * Read the specified page from disk.
      *

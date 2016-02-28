@@ -195,7 +195,7 @@ public class HeapFileEncoder {
                     headerbyte = 0;
                 }
             }
-            //if the last byte isn't full used
+            
             if (i % 8 > 0)
                 headerStream.writeByte(headerbyte);
             

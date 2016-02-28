@@ -1,5 +1,4 @@
 package simpledb;
-import java.util.*;
 import java.io.*;
 
 public class SimpleDb {
@@ -81,9 +80,9 @@ public class SimpleDb {
                 Class<?> s = String[].class;
                 
                 java.lang.reflect.Method m = c.getMethod("main", s);
-                m.invoke(null, (Object)newargs);
+                m.invoke(null, (java.lang.Object)newargs);
             } catch (ClassNotFoundException cne) {
-                System.out.println("Class Parser not found -- perhaps you are trying to run the parser as a part of lab1?");
+                System.out.println("Class Parser not found -- perhaps you are trying to run the parser as a part of proj1?");
             }
             catch (Exception e) {
                 System.out.println("Error in parser.");

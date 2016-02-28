@@ -1,7 +1,9 @@
 package simpledb;
 
-import java.io.IOException;
-import java.util.Vector;
+// <silentstrip proj1|proj2>
+import java.io.*;
+
+// </silentstrip>
 
 /**
  * Inserts tuples read from the child operator into the tableid specified in the
@@ -10,13 +12,12 @@ import java.util.Vector;
 public class Insert extends Operator {
 
     private static final long serialVersionUID = 1L;
-    private DbIterator[] children;
-    private Vector<Tuple> numsVec;
 
-    private boolean hasFetched = false;
     private DbIterator child;
+    private int tableid;
     private TransactionId tid;
-    private int tableId;
+    private TupleDesc returnTD;
+    private boolean processed=false;
 
     /**
      * Constructor.
@@ -33,34 +34,38 @@ public class Insert extends Operator {
      */
     public Insert(TransactionId t,DbIterator child, int tableid)
             throws DbException {
-        // some code goes here
-        this.tid = t;
         this.child = child;
-        this.tableId = tableid;
-        if (!child.getTupleDesc().equals(Database.getCatalog().getTupleDesc(tableid))) {
-            throw new DbException("TupleDesc doesn't match");
-        }
+        this.tableid = tableid;
+        this.tid = t;
+
+        // verify that TupleDescriptors are the same
+        if (!child.getTupleDesc().equals(
+                Database.getCatalog().getTupleDesc(tableid)))
+            throw new DbException("incompatible tuple descriptors for Insert");
+
+        // we return a 1-field tuple
+        Type[] typeAr = new Type[1];
+        typeAr[0] = Type.INT_TYPE;
+        returnTD = new TupleDesc(typeAr);
     }
 
     public TupleDesc getTupleDesc() {
-        // some code goes here
-        return new TupleDesc(new Type[]{Type.INT_TYPE});
+        return returnTD;
     }
 
     public void open() throws DbException, TransactionAbortedException {
-        // some code goes here
+        child.open();
         super.open();
     }
 
     public void close() {
-        // some code goes here
         super.close();
-
+        child.close();
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
-        // some code goes here
-        hasFetched =false;
+        child.close();
+        child.open();
     }
 
     /**
@@ -77,43 +82,35 @@ public class Insert extends Operator {
      * @see BufferPool#insertTuple
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
-        // some code goes here
-         int num = 0;
-        if (!hasFetched) {
-            hasFetched = true;
-            try {
-                child.open();
-                while (child.hasNext()){
-                    try {
-                        Database.getBufferPool().insertTuple(tid,tableId,child.next());
-                        num ++;
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-            } catch (TransactionAbortedException e) {
-                e.printStackTrace();
-            }
-            Tuple tuple = new Tuple(getTupleDesc());
-            tuple.setField(0, new IntField(num));
-            return tuple;
-        } else {
+        if (processed)
             return null;
+        
+        int count = 0;
+        while (child.hasNext()) {
+            Tuple t = child.next();
+            try {
+                Database.getBufferPool().insertTuple(tid, tableid, t);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            count++;
         }
 
-
+        // finished scanning
+        // generate a new "insert count" tuple
+        Tuple tup = new Tuple(returnTD);
+        tup.setField(0, new IntField(count));
+        processed=true;
+        return tup;
     }
 
     @Override
     public DbIterator[] getChildren() {
-        // some code goes here
-        return children;
+        return new DbIterator[] { this.child };
     }
 
     @Override
     public void setChildren(DbIterator[] children) {
-        // some code goes here
-        children = children;
+        this.child = children[0];
     }
 }

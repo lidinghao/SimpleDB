@@ -658,8 +658,7 @@ public class Parser {
             StringBuilder buffer = new StringBuilder();
             String line;
             boolean quit = false;
-            Console console = System.console();
-            while (!quit && (line =  "select d.f1, d.f2 from data d;") != null) {
+            while (!quit && (line = reader.readLine("SimpleDB> ")) != null) {
                 // Split statements at ';': handles multiple statements on one
                 // line, or one
                 // statement spread across many lines

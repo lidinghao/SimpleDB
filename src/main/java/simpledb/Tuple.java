@@ -1,12 +1,11 @@
 package simpledb;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 
 /**
- * Tuple maintains information about the contents of a fields. Tuples have a
+ * Tuple maintains information about the contents of a tuple. Tuples have a
  * specified schema specified by a TupleDesc object and contain Field objects
  * with the data for each field.
  */
@@ -14,55 +13,49 @@ public class Tuple implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private transient RecordId rid; // source on disk -- may be null
+    private Field fields[];
+    private transient TupleDesc td;
+
     /**
-     * Create a new fields with the specified schema (type).
+     * Create a new tuple with the specified schema (type).
      * 
      * @param td
-     *            the schema of this fields. It must be a valid TupleDesc
+     *            the schema of this tuple. It must be a valid TupleDesc
      *            instance with at least one field.
      */
-    private TupleDesc td;
-    private List<Field> fields;
-    private RecordId rId;
     public Tuple(TupleDesc td) {
+        fields = new Field[td.numFields()];
         this.td = td;
-        int i =td.numFields();
-        this.fields = new ArrayList<Field>(td.numFields());
-
-
-        // some code goes here
     }
 
     /**
-     * @return The TupleDesc representing the schema of this fields.
+     * @return The TupleDesc representing the schema of this tuple.
      */
     public TupleDesc getTupleDesc() {
-        // some code goes here
         return td;
     }
 
     /**
-     * @return The RecordId representing the location of this fields on disk. May
+     * @return The RecordId representing the location of this tuple on disk. May
      *         be null.
      */
     public RecordId getRecordId() {
-        // some code goes here
-        return rId;
+        return rid;
     }
 
     /**
-     * Set the RecordId information for this fields.
+     * Set the RecordId information for this tuple.
      * 
      * @param rid
-     *            the new RecordId for this fields.
+     *            the new RecordId for this tuple.
      */
     public void setRecordId(RecordId rid) {
-        // some code goes here
-        rId = rid;
+        this.rid = rid;
     }
 
     /**
-     * Change the value of the ith field of this fields.
+     * Change the value of the ith field of this tuple.
      * 
      * @param i
      *            index of the field to change. It must be a valid index.
@@ -70,11 +63,10 @@ public class Tuple implements Serializable {
      *            new value for the field.
      */
     public void setField(int i, Field f) {
-        // some code goes here
-        if (fields.size() > i)
-        fields.set(i, f);
-        else
-            fields.add(i,f);
+        if (f.getType() != td.getFieldType(i)) {
+            throw new RuntimeException("Invalid field type in Tuple.setField()");
+        }
+        fields[i] = f;
     }
 
     /**
@@ -84,8 +76,7 @@ public class Tuple implements Serializable {
      *            field index to return. Must be a valid index.
      */
     public Field getField(int i) {
-        // some code goes here
-        return (Field) fields.get(i);
+        return fields[i];
     }
 
     /**
@@ -97,34 +88,27 @@ public class Tuple implements Serializable {
      * where \t is any whitespace, except newline, and \n is a newline
      */
     public String toString() {
-        // some code goes here
-        String str = new  String();
-        for (int i = 0; i < fields.size() ; i++) {
-            str += fields.get(i).toString();
-            if (i == fields.size()-1)
-                str+='\n';
-            else
-                str +='\t';
+        String out = "";
+        for (int i = 0; i < fields.length; i++) {
+            if (out.length() > 0)
+                out += "\t";
+            out += fields[i];
         }
-        return str;
-
+        return out;
     }
-    public static Tuple merge(Tuple t1, Tuple t2){
-        TupleDesc td = TupleDesc.merge(t1.getTupleDesc(), t2.getTupleDesc());
-        Tuple tuple = new Tuple(td);
-        tuple.fields.addAll(t1.fields);
-        tuple.fields.addAll(t2.fields);
-        return tuple;
 
+    /**
+     * @return
+     *        An iterator which iterates over all the fields of this tuple
+     * */
+    public Iterator<Field> fields() {
+        return Arrays.asList(fields).iterator();
     }
     
     /**
-     * @return
-     *        An iterator which iterates over all the fields of this fields
+     * reset the TupleDesc of thi tuple
      * */
-    public Iterator<Field> fields()
-    {
-        // some code goes here
-        return fields.iterator();
+    public void resetTupleDesc(TupleDesc td) {
+        this.td = td;
     }
 }

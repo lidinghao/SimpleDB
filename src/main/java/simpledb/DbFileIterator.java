@@ -1,12 +1,11 @@
 package simpledb;
-import java.io.Serializable;
 import java.util.*;
 
 /**
  * DbFileIterator is the iterator interface that all SimpleDB Dbfile should
  * implement.
  */
-public interface DbFileIterator extends Serializable {
+public interface DbFileIterator{
     /**
      * Opens the iterator
      * @throws DbException when there are problems opening/accessing the database.

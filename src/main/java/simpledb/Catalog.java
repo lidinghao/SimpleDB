@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The Catalog keeps track of all available tables in the database and their
@@ -12,49 +13,27 @@ import java.util.*;
  * For now, this is a stub catalog that must be populated with tables by a
  * user program before it can be used -- eventually, this should be converted
  * to a catalog that reads a catalog table from disk.
+ * 
+ * @Threadsafe
  */
-
 public class Catalog {
+
+    private final Map<Integer, DbFile> id2table;
+    private final Map<Integer, TupleDesc> id2tupledesc;
+    private final Map<String, Integer> name2id;
+    private final Map<Integer, String> id2name;
+    private final Map<Integer, String> pkey;
 
     /**
      * Constructor.
      * Creates a new, empty catalog.
      */
-    public static class Table{
-        public DbFile getFile() {
-            return file;
-        }
-
-        public void setFile(DbFile file) {
-            this.file = file;
-        }
-
-        public String getpKey() {
-            return pKey;
-        }
-
-        public void setpKey(String pKey) {
-            this.pKey = pKey;
-        }
-
-        public Table(DbFile file, String pKey) {
-            this.file = file;
-            this.pKey = pKey;
-        }
-
-        private DbFile file;
-        private String pKey;
-
-    }
-
-
-    Map<String,Table> tables ;
-    Map<Integer, Table> tablesById;
     public Catalog() {
-        tables = new HashMap<>();
-        // some code goes here
-        tablesById = new HashMap<>();
-
+        id2table = new ConcurrentHashMap<Integer, DbFile>();
+        id2tupledesc = new ConcurrentHashMap<Integer, TupleDesc>();
+        name2id = new ConcurrentHashMap<String,Integer>();
+        id2name = new ConcurrentHashMap<Integer,String>();
+        pkey = new ConcurrentHashMap<Integer,String>();
     }
 
     /**
@@ -63,16 +42,25 @@ public class Catalog {
      * @param file the contents of the table to add;  file.getId() is the identfier of
      *    this file/tupledesc param for the calls getTupleDesc and getFile
      * @param name the name of the table -- may be an empty string.  May not be null.  If a name
+     *    conflict exists, use the last table to be added as the table for a given name.
      * @param pkeyField the name of the primary key field
-     * conflict exists, use the last table to be added as the table for a given name.
      */
     public void addTable(DbFile file, String name, String pkeyField) {
-        // some code goes here
-        Table table = new Table(file, pkeyField);
-        tables.put(name, table);
-        tablesById.put(file.getId(), table);
+		// It's not strictly necessary to remove existing tables by the same name;
+		// it means that you can no longer get at those tables by ID, but it saves
+		// some amount of memory.
+		if (name2id.containsKey(name)) {
+			id2table.remove( name2id.get(name) );
+			id2tupledesc.remove( name2id.get(name) );
+			name2id.remove(name);
+		}
+		
+        id2tupledesc.put(file.getId(), file.getTupleDesc());
+        id2table.put(file.getId(), file);
+        name2id.put(name, file.getId());
+        id2name.put(file.getId(), name);
 
-
+        pkey.put(file.getId(), pkeyField);
     }
 
     public void addTable(DbFile file, String name) {
@@ -90,20 +78,18 @@ public class Catalog {
         addTable(file, (UUID.randomUUID()).toString());
     }
 
-    /**e
+    /**
      * Return the id of the table with a specified name,
      * @throws NoSuchElementException if the table doesn't exist
      */
     public int getTableId(String name) throws NoSuchElementException {
-        // some code goes here
-        Table t = tables.get(name);
-        if (t != null) {
-            return t.getFile().getId();
+        if (name==null)
+            throw new NoSuchElementException();
+        if (name2id.get(name) == null) {
+        	throw new NoSuchElementException();
+        }
 
-        }else
-            throw  new NoSuchElementException("no such table");
-
-        //return 0;
+        return name2id.get(name).intValue();
     }
 
     /**
@@ -113,17 +99,7 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
-        // some code goes here
-        TupleDesc td = null;
-        for(Map.Entry<String,Table> entry:tables.entrySet()){
-            if (entry.getValue().getFile().getId() == tableid)
-                td = entry.getValue().getFile().getTupleDesc();
-
-        }
-        if (td != null) {
-            return td;
-        }else
-            throw new NoSuchElementException();
+        return id2tupledesc.get(new Integer(tableid));
     }
 
     /**
@@ -133,67 +109,40 @@ public class Catalog {
      *     function passed to addTable
      */
     public DbFile getDbFile(int tableid) throws NoSuchElementException {
-        // some code goes here
-        DbFile df = null;
-        for(Map.Entry<String,Table> entry:tables.entrySet()){
-            if (entry.getValue().getFile().getId() == tableid)
-                df = entry.getValue().getFile();
-
-        }
-        if (df != null) {
-            return df;
-        }else
-            throw new NoSuchElementException();
+        return id2table.get(tableid);
     }
 
     public String getPrimaryKey(int tableid) {
-        // some code goes here
-        String pKey = null;
-        for(Map.Entry<String,Table> entry:tables.entrySet()){
-            if (entry.getValue().getFile().getId() == tableid)
-                pKey = entry.getValue().getpKey();
-
-        }
-        if (pKey != null) {
-            return pKey;
-        }else
-            throw new NoSuchElementException();
+        return pkey.get(tableid);
     }
 
     public Iterator<Integer> tableIdIterator() {
-        // some code goes here
-
-        return tablesById.keySet().iterator();
+        return id2table.keySet().iterator();
     }
 
     public String getTableName(int id) {
-        // some code goes here
-        for (Map.Entry<String, Table> table : tables.entrySet()) {
-            if (table.getValue().getFile().getId() == id) {
-                return table.getKey();
-            }
-        }
-        return null;
+        return id2name.get(id);
     }
-
+    
     /** Delete all tables from the catalog */
     public void clear() {
-        tables = new HashMap<>();
-        tablesById = new HashMap<>();
-        // some code goes here
+        id2table.clear();
+        id2tupledesc.clear();
+        name2id.clear();
+        id2name.clear();
+        pkey.clear();
     }
-
+    
     /**
      * Reads the schema from a file and creates the appropriate tables in the database.
      * @param catalogFile
      */
     public void loadSchema(String catalogFile) {
         String line = "";
-        String absolutePath=new File(catalogFile).getAbsolutePath();
-        String baseFolder=new File(absolutePath).getParent();
+        String baseFolder=new File(new File(catalogFile).getAbsolutePath()).getParent();
         try {
             BufferedReader br = new BufferedReader(new FileReader(new File(catalogFile)));
-
+            
             while ((line = br.readLine()) != null) {
                 //assume line is of the format name (field type, field type, ...)
                 String name = line.substring(0, line.indexOf("(")).trim();
