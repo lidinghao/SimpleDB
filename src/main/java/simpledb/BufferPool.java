@@ -246,4 +246,7 @@ public class BufferPool {
         timeStamp.remove(LRUPage.getKey());
     }
 
+    public static int getPageSize() {
+        return PAGE_SIZE;
+    }
 }
