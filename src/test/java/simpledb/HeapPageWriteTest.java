@@ -29,20 +29,21 @@ public class HeapPageWriteTest extends SimpleDbTestBase {
     }
     
     /**
-     * Unit test for HeapPage.isDirty()
+     * Unit test for HeapPage.isPageDirty()
      */
     @Test public void testDirty() throws Exception {
         TransactionId tid = new TransactionId();
         HeapPage page = new HeapPage(pid, HeapPageReadTest.EXAMPLE_DATA);
-        page.markDirty(true, tid);
-        TransactionId dirtier = page.isDirty();
+        page.markPageDirty(true, tid);
+        TransactionId dirtier = page.isPageDirty();
         assertEquals(true, dirtier != null);
         assertEquals(true, dirtier == tid);
 
-        page.markDirty(false, tid);
-        dirtier = page.isDirty();
+        page.markPageDirty(false, tid);
+        dirtier = page.isPageDirty();
         assertEquals(false, dirtier != null);
     }
+
     /**
      * Unit test for HeapPage.addTuple()
      */

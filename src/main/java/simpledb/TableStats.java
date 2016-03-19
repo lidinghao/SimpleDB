@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * TableStats represents statistics (e.g., histograms) about base tables in a
  * query. 
  * 
- * This class is not needed in implementing proj1 and proj2.
+ * This class is not needed in implementing lab1 and lab2.
  */
 public class TableStats {
 

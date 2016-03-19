@@ -104,7 +104,7 @@ public class JoinOptimizer {
             double cost1, double cost2) {
         if (j instanceof LogicalSubplanJoinNode) {
             // A LogicalSubplanJoinNode represents a subquery.
-            // You do not need to implement proper support for these for Lab 4.
+            // You do not need to implement proper support for these for Lab 5.
             return card1 + cost1 + cost2;
         } else {
             // Insert your code here.
@@ -138,7 +138,7 @@ public class JoinOptimizer {
             boolean t1pkey, boolean t2pkey, Map<String, TableStats> stats) {
         if (j instanceof LogicalSubplanJoinNode) {
             // A LogicalSubplanJoinNode represents a subquery.
-            // You do not need to implement proper support for these for Lab 4.
+            // You do not need to implement proper support for these for Lab 5.
             return card1;
         } else {
             return estimateTableJoinCardinality(j.p, j.t1Alias, j.t2Alias,
@@ -217,7 +217,7 @@ public class JoinOptimizer {
             HashMap<String, TableStats> stats,
             HashMap<String, Double> filterSelectivities, boolean explain)
             throws ParsingException {
-        //Not necessary for projs 1--3
+        //Not necessary for labs 1--3
 
         // some code goes here
         //Replace the following
@@ -337,7 +337,6 @@ public class JoinOptimizer {
                 // subtree is
                 t2card = bestCard;
                 rightPkey = hasPkey(prevBest);
-
                 t1cost = stats.get(table1Name).estimateScanCost();
                 t1card = stats.get(table1Name).estimateTableCardinality(
                         filterSelectivities.get(j.t1Alias));

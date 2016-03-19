@@ -1,5 +1,4 @@
 package simpledb;
-import java.util.*;
 import java.io.*;
 
 public class SimpleDb {
@@ -45,7 +44,7 @@ public class SimpleDb {
             }
 
             HeapFileEncoder.convert(sourceTxtFile,targetDatFile,
-                        BufferPool.PAGE_SIZE,numOfAttributes,ts,fieldSeparator);
+                        BufferPool.getPageSize(),numOfAttributes,ts,fieldSeparator);
 
         } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -81,7 +80,7 @@ public class SimpleDb {
                 Class<?> s = String[].class;
                 
                 java.lang.reflect.Method m = c.getMethod("main", s);
-                m.invoke(null, (Object)newargs);
+                m.invoke(null, (java.lang.Object)newargs);
             } catch (ClassNotFoundException cne) {
                 System.out.println("Class Parser not found -- perhaps you are trying to run the parser as a part of lab1?");
             }

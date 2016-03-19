@@ -59,7 +59,7 @@ public class StringHistogram {
         return stringToInt("");
     }
 
-    /** Add a new value to the histogram */
+    /** Add a new value to thte histogram */
     public void addValue(String s) {
         int val = stringToInt(s);
         hist.addValue(val);

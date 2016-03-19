@@ -219,7 +219,7 @@ public class TestUtil {
             throw new RuntimeException("not implemented");
         }
 
-        public Page deleteTuple(TransactionId tid, Tuple t)
+        public ArrayList<Page> deleteTuple(TransactionId tid, Tuple t)
             throws DbException, TransactionAbortedException {
             throw new RuntimeException("not implemented");
         }
@@ -260,6 +260,7 @@ public class TestUtil {
         }
 
         public void open() {
+            cur = low;
         }
 
         public void close() {
@@ -344,7 +345,7 @@ public class TestUtil {
 
                 try {
                     Database.getBufferPool().transactionComplete(tid, false);
-                } catch (IOException e2) {
+                } catch (java.io.IOException e2) {
                     e2.printStackTrace();
                 }
             }

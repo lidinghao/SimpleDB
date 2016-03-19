@@ -1,8 +1,5 @@
 package simpledb;
 
-import java.io.IOException;
-import java.util.Vector;
-
 /**
  * Inserts tuples read from the child operator into the tableid specified in the
  * constructor
@@ -10,13 +7,6 @@ import java.util.Vector;
 public class Insert extends Operator {
 
     private static final long serialVersionUID = 1L;
-    private DbIterator[] children;
-    private Vector<Tuple> numsVec;
-
-    private boolean hasFetched = false;
-    private DbIterator child;
-    private TransactionId tid;
-    private int tableId;
 
     /**
      * Constructor.
@@ -34,33 +24,23 @@ public class Insert extends Operator {
     public Insert(TransactionId t,DbIterator child, int tableid)
             throws DbException {
         // some code goes here
-        this.tid = t;
-        this.child = child;
-        this.tableId = tableid;
-        if (!child.getTupleDesc().equals(Database.getCatalog().getTupleDesc(tableid))) {
-            throw new DbException("TupleDesc doesn't match");
-        }
     }
 
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return new TupleDesc(new Type[]{Type.INT_TYPE});
+        return null;
     }
 
     public void open() throws DbException, TransactionAbortedException {
         // some code goes here
-        super.open();
     }
 
     public void close() {
         // some code goes here
-        super.close();
-
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
         // some code goes here
-        hasFetched =false;
     }
 
     /**
@@ -78,42 +58,17 @@ public class Insert extends Operator {
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
         // some code goes here
-         int num = 0;
-        if (!hasFetched) {
-            hasFetched = true;
-            try {
-                child.open();
-                while (child.hasNext()){
-                    try {
-                        Database.getBufferPool().insertTuple(tid,tableId,child.next());
-                        num ++;
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-            } catch (TransactionAbortedException e) {
-                e.printStackTrace();
-            }
-            Tuple tuple = new Tuple(getTupleDesc());
-            tuple.setField(0, new IntField(num));
-            return tuple;
-        } else {
-            return null;
-        }
-
-
+        return null;
     }
 
     @Override
     public DbIterator[] getChildren() {
         // some code goes here
-        return children;
+        return null;
     }
 
     @Override
     public void setChildren(DbIterator[] children) {
         // some code goes here
-        children = children;
     }
 }

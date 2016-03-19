@@ -1,6 +1,6 @@
 package simpledb.systemtest;
 
-//import simpledb.simpledb.systemtest.SystemTestUtil;
+import simpledb.systemtest.SystemTestUtil;
 
 import static org.junit.Assert.*;
 

@@ -88,7 +88,8 @@ public abstract class Operator implements DbIterator {
     public abstract TupleDesc getTupleDesc();
 
     /**
-     * @return The estimated cardinality of this operator. 
+     * @return The estimated cardinality of this operator. Will only be used in
+     *         lab7
      * */
     public int getEstimatedCardinality() {
         return this.estimatedCardinality;
@@ -96,7 +97,8 @@ public abstract class Operator implements DbIterator {
 
     /**
      * @param card
-     *            The estimated cardinality of this operator.
+     *            The estimated cardinality of this operator Will only be used
+     *            in lab7
      * */
     protected void setEstimatedCardinality(int card) {
         this.estimatedCardinality = card;

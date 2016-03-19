@@ -26,12 +26,12 @@ public interface Page {
      *
      * @return The id of the transaction that last dirtied this page, or null
      */
-    public TransactionId isDirty();
+    public TransactionId isPageDirty();
 
   /**
    * Set the dirty state of this page as dirtied by a particular transaction
    */
-    public void markDirty(boolean dirty, TransactionId tid);
+    public void markPageDirty(boolean dirty, TransactionId tid);
 
   /**
    * Generates a byte array representing the contents of this page.

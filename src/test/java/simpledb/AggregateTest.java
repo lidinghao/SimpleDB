@@ -124,13 +124,13 @@ public class AggregateTest extends SimpleDbTestBase {
   /**
    * Unit test for Aggregate.getNext() using a count aggregate with string types
    */
-//  @Test public void sumStringGroupBy() throws Exception {
-//    Aggregate op = new Aggregate(scan3, 1, 0,
-//        Aggregator.Op.SUM);
-//    op.open();
-//    sumstring.open();
-//    TestUtil.matchAllTuples(sumstring, op);
-//  }
+  @Test public void sumStringGroupBy() throws Exception {
+    Aggregate op = new Aggregate(scan3, 1, 0,
+        Aggregator.Op.SUM);
+    op.open();
+    sumstring.open();
+    TestUtil.matchAllTuples(sumstring, op);
+  }
 
   /**
    * Unit test for Aggregate.getNext() using a sum aggregate

@@ -1,16 +1,8 @@
 package simpledb;
 
-import java.util.Arrays;
-
 /** A class to represent a fixed-width histogram over a single integer-based field.
  */
 public class IntHistogram {
-
-    private final int min;
-    private final int max;
-    private double width;
-    private int numTuples;
-    private int[] counts;
 
     /**
      * Create a new IntHistogram.
@@ -29,15 +21,7 @@ public class IntHistogram {
      * @param max The maximum integer value that will ever be passed to this class for histogramming
      */
     public IntHistogram(int buckets, int min, int max) {
-        this.width = ((double) max - min) / buckets;
-        if (width < 1) {
-            width = 1;
-            buckets = max - min;
-        }
-        numTuples = 0;
-        counts = new int[buckets];
-        this.min = min;
-        this.max = max;
+    	// some code goes here
     }
 
     /**
@@ -45,8 +29,7 @@ public class IntHistogram {
      * @param v Value to add to the histogram
      */
     public void addValue(int v) {
-        counts[bucketIndex(v)]++;
-        numTuples++;
+    	// some code goes here
     }
 
     /**
@@ -60,37 +43,9 @@ public class IntHistogram {
      * @return Predicted selectivity of this particular operator and value
      */
     public double estimateSelectivity(Predicate.Op op, int v) {
-        if (Predicate.Op.LESS_THAN_OR_EQ.equals(op)) v++;
-        //First we normalize v to be in the range [min, max]
-        if(v < min || v > max){
-            if(op == Predicate.Op.EQUALS || op == Predicate.Op.LIKE)
-                return 0;
-            else if (op == Predicate.Op.NOT_EQUALS)
-                return 1;
-            else
-                v = (v > max) ? max : min;
-        }
-        int index = bucketIndex(v);
 
-        if (Predicate.Op.EQUALS.equals(op)) {
-            return ((double) counts[index]) / width / numTuples;
-        } else if (Predicate.Op.GREATER_THAN.equals(op) || Predicate.Op.GREATER_THAN_OR_EQ.equals(op)) {
-            double selectivity = (right(index) - v) * counts[index];
-            for (int i = index + 1; i < counts.length; i++) {
-                selectivity += counts[i];
-            }
-            return selectivity / width / numTuples;
-        } else if (Predicate.Op.LESS_THAN.equals(op) || Predicate.Op.LESS_THAN_OR_EQ.equals(op)) {
-            double selectivity = (v - left(index)) * counts[index];
-            for (int i = 0; i < index; i++) {
-                selectivity += counts[i];
-            }
-            return selectivity / width / numTuples;
-        } else if (Predicate.Op.NOT_EQUALS.equals(op)) {
-            return 1 - ((double) counts[index]) / width / numTuples;
-        }
-        // Huh?
-        return -1;
+    	// some code goes here
+        return -1.0;
     }
     
     /**
@@ -101,8 +56,9 @@ public class IntHistogram {
      *     join optimization. It may be needed if you want to
      *     implement a more efficient optimization
      * */
-    public double avgSelectivity() {
-        // optional: implement for a more nuanced estimation, or for skillz
+    public double avgSelectivity()
+    {
+        // some code goes here
         return 1.0;
     }
     
@@ -110,21 +66,7 @@ public class IntHistogram {
      * @return A string describing this histogram, for debugging purposes
      */
     public String toString() {
-        return Arrays.toString(counts);
-    }
-
-    private int bucketIndex(int v) {
-        int index = (int) ((v - min) / width);
-        if (index < 0) return 0;
-        if (index >= counts.length) return counts.length - 1;
-        else return index;
-    }
-
-    private double left(int index) {
-        return min + width * index;
-    }
-
-    private double right(int index) {
-        return left(index + 1);
+        // some code goes here
+        return null;
     }
 }
