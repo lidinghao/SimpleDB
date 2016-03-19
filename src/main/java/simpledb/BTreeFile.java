@@ -204,40 +204,31 @@ public class BTreeFile implements DbFile {
 			Permissions perm, Field f) throws DbException, TransactionAbortedException {
 		// Assume that only leaf and internal pages will be passed to this
 		// function.
-
 		if (pid.pgcateg() == BTreePageId.LEAF) {
-			BTreeLeafPage page = (BTreeLeafPage) getPage(tid, dirtypages, pid, perm);
+			return ((BTreeLeafPage) getPage(tid, dirtypages, pid, perm));
+		} else {
+			BTreeInternalPage page = (BTreeInternalPage) readPage(pid);
+			Iterator<BTreeEntry> iter = page.iterator();
+			BTreeEntry lastEntry = null;
+			while (iter.hasNext()) {
 
-			if (f == null) {
-				return page;
-			}
+				BTreeEntry treeEntry = iter.next();
+				lastEntry = treeEntry;
+				if (f == null) {
+					//采用只读方式读取索引，提高并发
+					//get the internal page using READ_ONLY, to improve the concurrency.
+					return findLeafPage(tid, dirtypages, treeEntry.getLeftChild(), Permissions.READ_ONLY, f);
+				} else if (f.compare(Op.LESS_THAN, treeEntry.getKey())) {
+					return findLeafPage(tid, dirtypages, treeEntry.getLeftChild(), Permissions.READ_ONLY, f);
+				} else if (f.compare(Op.EQUALS, treeEntry.getKey())) {
+					return findLeafPage(tid, dirtypages, treeEntry.getRightChild(), Permissions.READ_ONLY, f);
 
-			while (page.getLeftSiblingId() != null
-					&& page.iterator().next().getField(keyField).compare(Predicate.Op.EQUALS, f)) {
-
-				BTreeLeafPage leftPage = (BTreeLeafPage) getPage(tid, dirtypages, page.getLeftSiblingId(), perm);
-				if (leftPage.reverseIterator().next().getField(keyField).compare(Predicate.Op.EQUALS, f)) {
-					page = leftPage;
-				} else {
-					break;
 				}
 			}
-			return page;
-		}
+			//the last level , right most internal page,
+			return findLeafPage(tid, dirtypages, lastEntry.getRightChild(), perm, f);
 
-		BTreeInternalPage page = (BTreeInternalPage) getPage(tid, dirtypages, pid, Permissions.READ_ONLY);
-		Iterator<BTreeEntry> it = page.iterator();
-		BTreeEntry entry = null;
-		while (it.hasNext()) {
-			entry = it.next();
-			if (f == null) {
-				return findLeafPage(tid, dirtypages, entry.getLeftChild(), perm, f);
-			} else if (entry.getKey().compare(Op.GREATER_THAN_OR_EQ, f)) {
-				return findLeafPage(tid, dirtypages, entry.getLeftChild(), perm, f);
-			}
 		}
-
-		return findLeafPage(tid, dirtypages, entry.getRightChild(), perm, f);
 	}
 
 	/**
@@ -306,48 +297,7 @@ public class BTreeFile implements DbFile {
 		// into which a
 		// tuple with the given key field should be inserted.
 
-		BTreeLeafPage newPage = (BTreeLeafPage) getEmptyPage(tid, dirtypages, BTreePageId.LEAF);
-
-		BTreeLeafPage oldRightSibling = null;
-		if (page.getRightSiblingId() != null) {
-			oldRightSibling = (BTreeLeafPage) getPage(tid, dirtypages, page.getRightSiblingId(),
-					Permissions.READ_WRITE);
-		}
-
-		int numTuples = page.getNumTuples();
-
-		Iterator<Tuple> backIter = page.reverseIterator();
-		for (int i = 0; 2 * i < numTuples; i++) {
-			Tuple t = backIter.next();
-			page.deleteTuple(t);
-			newPage.insertTuple(t);
-		}
-
-		newPage.setLeftSiblingId(page.getId());
-		newPage.setRightSiblingId(page.getRightSiblingId());
-		page.setRightSiblingId(newPage.getId());
-		if (oldRightSibling != null) {
-			oldRightSibling.setLeftSiblingId(newPage.getId());
-		}
-
-		Field copied = newPage.iterator().next().getField(keyField);
-
-		BTreeInternalPage parent = getParentWithEmptySlots(tid, dirtypages, page.getParentId(), copied);
-
-		page.setParentId(parent.getId());
-		newPage.setParentId(parent.getId());
-
-		parent.insertEntry(new BTreeEntry(copied, page.getId(), newPage.getId()));
-
-		dirtypages.put(parent.getId(), parent);
-		dirtypages.put(page.getId(), page);
-		dirtypages.put(newPage.getId(), newPage);
-
-		if (field.compare(Predicate.Op.LESS_THAN, copied)) {
-			return page;
-		} else {
-			return newPage;
-		}
+       return null;
 	}
 
 	/**
@@ -397,42 +347,7 @@ public class BTreeFile implements DbFile {
 		// given key field
 		// should be inserted.
 
-		BTreeInternalPage newPage = (BTreeInternalPage) getEmptyPage(tid, dirtypages, BTreePageId.INTERNAL);
-
-		int numEntries = page.getNumEntries();
-
-		Iterator<BTreeEntry> backIter = page.reverseIterator();
-		for (int i = 0; i < numEntries / 2; i++) {
-			BTreeEntry e = backIter.next();
-			page.deleteKeyAndRightChild(e);
-			newPage.insertEntry(e);
-		}
-
-		BTreeEntry middleKey = backIter.next();
-
-		page.deleteKeyAndRightChild(middleKey);
-
-		BTreeInternalPage parent = getParentWithEmptySlots(tid, dirtypages, page.getParentId(), middleKey.getKey());
-
-		middleKey.setLeftChild(page.getId());
-		middleKey.setRightChild(newPage.getId());
-		parent.insertEntry(new BTreeEntry(middleKey.getKey(), page.getId(), newPage.getId()));
-
-		page.setParentId(parent.getId());
-		newPage.setParentId(parent.getId());
-
-		dirtypages.put(parent.getId(), parent);
-		dirtypages.put(page.getId(), page);
-		dirtypages.put(newPage.getId(), newPage);
-
-		updateParentPointers(tid, dirtypages, page);
-		updateParentPointers(tid, dirtypages, newPage);
-
-		if (field.compare(Predicate.Op.LESS_THAN, middleKey.getKey())) {
-			return page;
-		} else {
-			return newPage;
-		}
+         return null;
 
 	}
 
