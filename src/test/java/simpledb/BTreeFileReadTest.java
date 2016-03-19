@@ -51,9 +51,10 @@ public class BTreeFileReadTest extends SimpleDbTestBase {
 	 * Unit test for BTreeFile.getTupleDesc()
 	 */
 	@Test
-	public void getTupleDesc() throws Exception {    	
-		assertEquals(td, f.getTupleDesc());        
+	public void getTupleDesc() throws Exception {
+		assertEquals(td, f.getTupleDesc());
 	}
+
 	/**
 	 * Unit test for BTreeFile.numPages()
 	 */
@@ -85,8 +86,7 @@ public class BTreeFileReadTest extends SimpleDbTestBase {
 
 	@Test
 	public void testIteratorBasic() throws Exception {
-		BTreeFile smallFile = BTreeUtility.createRandomBTreeFile(2, 3, null,
-				null, 0);
+		BTreeFile smallFile = BTreeUtility.createRandomBTreeFile(2, 3, null, null, 0);
 
 		DbFileIterator it = smallFile.iterator(tid);
 		// Not open yet
@@ -111,10 +111,10 @@ public class BTreeFileReadTest extends SimpleDbTestBase {
 	public void testIteratorClose() throws Exception {
 		// make more than 1 page. Previous closed iterator would start fetching
 		// from page 1.
-		BTreeFile twoLeafPageFile = BTreeUtility.createRandomBTreeFile(2, 520,
-				null, null, 0);
+		BTreeFile twoLeafPageFile = BTreeUtility.createRandomBTreeFile(2, 520, null, null, 0);
 
-		// there should be 3 pages - two leaf pages and one internal page (the root)
+		// there should be 3 pages - two leaf pages and one internal page (the
+		// root)
 		assertEquals(3, twoLeafPageFile.numPages());
 
 		DbFileIterator it = twoLeafPageFile.iterator(tid);
@@ -133,17 +133,17 @@ public class BTreeFileReadTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeFile.indexIterator()
 	 */
-	@Test public void indexIterator() throws Exception {
-		BTreeFile twoLeafPageFile = BTreeUtility.createBTreeFile(2, 520,
-				null, null, 0);
-		Field f =  new IntField(5);
+	@Test
+	public void indexIterator() throws Exception {
+		BTreeFile twoLeafPageFile = BTreeUtility.createBTreeFile(2, 520, null, null, 0);
+		Field f = new IntField(5);
 
 		// greater than
 		IndexPredicate ipred = new IndexPredicate(Op.GREATER_THAN, f);
 		DbFileIterator it = twoLeafPageFile.indexIterator(tid, ipred);
 		it.open();
 		int count = 0;
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			Tuple t = it.next();
 			assertTrue(t.getField(0).compare(Op.GREATER_THAN, f));
 			count++;
@@ -156,7 +156,7 @@ public class BTreeFileReadTest extends SimpleDbTestBase {
 		it = twoLeafPageFile.indexIterator(tid, ipred);
 		it.open();
 		count = 0;
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			Tuple t = it.next();
 			assertTrue(t.getField(0).compare(Op.LESS_THAN_OR_EQ, f));
 			count++;
@@ -169,7 +169,7 @@ public class BTreeFileReadTest extends SimpleDbTestBase {
 		it = twoLeafPageFile.indexIterator(tid, ipred);
 		it.open();
 		count = 0;
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			Tuple t = it.next();
 			assertTrue(t.getField(0).compare(Op.EQUALS, f));
 			count++;
@@ -183,7 +183,7 @@ public class BTreeFileReadTest extends SimpleDbTestBase {
 		it = twoLeafPageFile.indexIterator(tid, ipred);
 		it.open();
 		count = 0;
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			Tuple t = it.next();
 			assertTrue(t.getField(0).compare(Op.EQUALS, f));
 			count++;

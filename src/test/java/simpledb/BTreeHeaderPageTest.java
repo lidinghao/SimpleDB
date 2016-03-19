@@ -16,6 +16,7 @@ public class BTreeHeaderPageTest extends SimpleDbTestBase {
 	private BTreePageId pid;
 
 	public static final byte[] EXAMPLE_DATA;
+
 	static {
 		EXAMPLE_DATA = BTreeHeaderPage.createEmptyPageData();
 	}
@@ -23,7 +24,8 @@ public class BTreeHeaderPageTest extends SimpleDbTestBase {
 	/**
 	 * Set up initial resources for each unit test.
 	 */
-	@Before public void addTable() throws Exception {
+	@Before
+	public void addTable() throws Exception {
 		this.pid = new BTreePageId(-1, -1, BTreePageId.HEADER);
 		Database.getCatalog().addTable(new SkeletonFile(-1, Utility.getTupleDesc(2)), SystemTestUtil.getUUID());
 	}
@@ -31,7 +33,8 @@ public class BTreeHeaderPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeHeaderPage.getId()
 	 */
-	@Test public void getId() throws Exception {
+	@Test
+	public void getId() throws Exception {
 		BTreeHeaderPage page = new BTreeHeaderPage(pid, EXAMPLE_DATA);
 		assertEquals(pid, page.getId());
 	}
@@ -39,7 +42,8 @@ public class BTreeHeaderPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeHeaderPage.getPrevPageId()
 	 */
-	@Test public void getPrevPageId() throws Exception {
+	@Test
+	public void getPrevPageId() throws Exception {
 		BTreeHeaderPage page = new BTreeHeaderPage(pid, EXAMPLE_DATA);
 		assertTrue(page.getPrevPageId() == null);
 	}
@@ -47,7 +51,8 @@ public class BTreeHeaderPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeHeaderPage.getNextPageId()
 	 */
-	@Test public void getNextPageId() throws Exception {
+	@Test
+	public void getNextPageId() throws Exception {
 		BTreeHeaderPage page = new BTreeHeaderPage(pid, EXAMPLE_DATA);
 		assertTrue(page.getNextPageId() == null);
 	}
@@ -55,7 +60,8 @@ public class BTreeHeaderPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeHeaderPage.setPrevPageId()
 	 */
-	@Test public void setPrevPageId() throws Exception {
+	@Test
+	public void setPrevPageId() throws Exception {
 		BTreeHeaderPage page = new BTreeHeaderPage(pid, EXAMPLE_DATA);
 		BTreePageId id = new BTreePageId(pid.getTableId(), 1, BTreePageId.HEADER);
 		page.setPrevPageId(id);
@@ -73,7 +79,8 @@ public class BTreeHeaderPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeHeaderPage.setNextPageId()
 	 */
-	@Test public void setNextPageId() throws Exception {
+	@Test
+	public void setNextPageId() throws Exception {
 		BTreeHeaderPage page = new BTreeHeaderPage(pid, EXAMPLE_DATA);
 		BTreePageId id = new BTreePageId(pid.getTableId(), 1, BTreePageId.HEADER);
 		page.setNextPageId(id);
@@ -82,7 +89,8 @@ public class BTreeHeaderPageTest extends SimpleDbTestBase {
 		id = new BTreePageId(pid.getTableId() + 1, 1, BTreePageId.HEADER);
 		try {
 			page.setNextPageId(id);
-			throw new Exception("should not be able to set nextPageId to a page from a different table; expected DbException");
+			throw new Exception(
+					"should not be able to set nextPageId to a page from a different table; expected DbException");
 		} catch (DbException e) {
 			// explicitly ignored
 		}
@@ -91,14 +99,16 @@ public class BTreeHeaderPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeHeaderPage.numSlots()
 	 */
-	@Test public void numSlots() throws Exception {
+	@Test
+	public void numSlots() throws Exception {
 		assertEquals(32704, BTreeHeaderPage.getNumSlots());
 	}
 
 	/**
 	 * Unit test for BTreeHeaderPage.getEmptySlot()
 	 */
-	@Test public void getEmptySlot() throws Exception {
+	@Test
+	public void getEmptySlot() throws Exception {
 		BTreeHeaderPage page = new BTreeHeaderPage(pid, EXAMPLE_DATA);
 		assertEquals(0, page.getEmptySlot());
 		page.init();
@@ -108,9 +118,11 @@ public class BTreeHeaderPageTest extends SimpleDbTestBase {
 	}
 
 	/**
-	 * Unit test for BTreeHeaderPage.isSlotUsed() and BTreeHeaderPage.markSlotUsed()
+	 * Unit test for BTreeHeaderPage.isSlotUsed() and
+	 * BTreeHeaderPage.markSlotUsed()
 	 */
-	@Test public void getSlot() throws Exception {
+	@Test
+	public void getSlot() throws Exception {
 		BTreeHeaderPage page = new BTreeHeaderPage(pid, EXAMPLE_DATA);
 		page.init();
 		for (int i = 0; i < 20; ++i) {
@@ -122,7 +134,7 @@ public class BTreeHeaderPageTest extends SimpleDbTestBase {
 		}
 
 		for (int i = 0; i < 20; ++i) {
-			if(i % 2 == 0)
+			if (i % 2 == 0)
 				assertTrue(page.isSlotUsed(i));
 			else
 				assertFalse(page.isSlotUsed(i));
@@ -137,7 +149,8 @@ public class BTreeHeaderPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeHeaderPage.getPageData()
 	 */
-	@Test public void getPageData() throws Exception {
+	@Test
+	public void getPageData() throws Exception {
 		BTreeHeaderPage page0 = new BTreeHeaderPage(pid, EXAMPLE_DATA);
 		page0.init();
 		for (int i = 0; i < 20; ++i) {
@@ -151,7 +164,7 @@ public class BTreeHeaderPageTest extends SimpleDbTestBase {
 		BTreeHeaderPage page = new BTreeHeaderPage(pid, page0.getPageData());
 
 		for (int i = 0; i < 20; ++i) {
-			if(i % 2 == 0)
+			if (i % 2 == 0)
 				assertTrue(page.isSlotUsed(i));
 			else
 				assertFalse(page.isSlotUsed(i));
@@ -166,7 +179,8 @@ public class BTreeHeaderPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeHeaderPage.isPageDirty()
 	 */
-	@Test public void testDirty() throws Exception {
+	@Test
+	public void testDirty() throws Exception {
 		TransactionId tid = new TransactionId();
 		BTreeHeaderPage page = new BTreeHeaderPage(pid, EXAMPLE_DATA);
 		page.markPageDirty(true, tid);

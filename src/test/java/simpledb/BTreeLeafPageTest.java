@@ -20,30 +20,13 @@ import junit.framework.JUnit4TestAdapter;
 public class BTreeLeafPageTest extends SimpleDbTestBase {
 	private BTreePageId pid;
 
-	public static final int[][] EXAMPLE_VALUES = new int[][] {
-		{ 31933, 862 },
-		{ 29402, 56883 },
-		{ 1468, 5825 },
-		{ 17876, 52278 },
-		{ 6350, 36090 },
-		{ 34784, 43771 },
-		{ 28617, 56874 },
-		{ 19209, 23253 },
-		{ 56462, 24979 },
-		{ 51440, 56685 },
-		{ 3596, 62307 },
-		{ 45569, 2719 },
-		{ 22064, 43575 },
-		{ 42812, 44947 },
-		{ 22189, 19724 },
-		{ 33549, 36554 },
-		{ 9086, 53184 },
-		{ 42878, 33394 },
-		{ 62778, 21122 },
-		{ 17197, 16388 }
-	};
+	public static final int[][] EXAMPLE_VALUES = new int[][] { { 31933, 862 }, { 29402, 56883 }, { 1468, 5825 },
+			{ 17876, 52278 }, { 6350, 36090 }, { 34784, 43771 }, { 28617, 56874 }, { 19209, 23253 }, { 56462, 24979 },
+			{ 51440, 56685 }, { 3596, 62307 }, { 45569, 2719 }, { 22064, 43575 }, { 42812, 44947 }, { 22189, 19724 },
+			{ 33549, 36554 }, { 9086, 53184 }, { 42878, 33394 }, { 62778, 21122 }, { 17197, 16388 } };
 
 	public static final byte[] EXAMPLE_DATA;
+
 	static {
 		// Build the input table
 		ArrayList<Tuple> tuples = new ArrayList<Tuple>();
@@ -57,8 +40,8 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 
 		// Convert it to a BTreeLeafPage
 		try {
-			EXAMPLE_DATA = BTreeFileEncoder.convertToLeafPage(tuples, 
-					BufferPool.getPageSize(), 2, new Type[]{Type.INT_TYPE, Type.INT_TYPE}, 0);
+			EXAMPLE_DATA = BTreeFileEncoder.convertToLeafPage(tuples, BufferPool.getPageSize(), 2,
+					new Type[] { Type.INT_TYPE, Type.INT_TYPE }, 0);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -67,7 +50,8 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	/**
 	 * Set up initial resources for each unit test.
 	 */
-	@Before public void addTable() throws Exception {
+	@Before
+	public void addTable() throws Exception {
 		this.pid = new BTreePageId(-1, -1, BTreePageId.LEAF);
 		Database.getCatalog().addTable(new SkeletonFile(-1, Utility.getTupleDesc(2)), SystemTestUtil.getUUID());
 	}
@@ -75,7 +59,8 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeLeafPage.getId()
 	 */
-	@Test public void getId() throws Exception {
+	@Test
+	public void getId() throws Exception {
 		BTreeLeafPage page = new BTreeLeafPage(pid, EXAMPLE_DATA, 0);
 		assertEquals(pid, page.getId());
 	}
@@ -83,7 +68,8 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeLeafPage.getParentId()
 	 */
-	@Test public void getParentId() throws Exception {
+	@Test
+	public void getParentId() throws Exception {
 		BTreeLeafPage page = new BTreeLeafPage(pid, EXAMPLE_DATA, 0);
 		assertEquals(new BTreePageId(pid.getTableId(), 0, BTreePageId.ROOT_PTR), page.getParentId());
 	}
@@ -91,7 +77,8 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeLeafPage.getLeftSiblingId()
 	 */
-	@Test public void getLeftSiblingId() throws Exception {
+	@Test
+	public void getLeftSiblingId() throws Exception {
 		BTreeLeafPage page = new BTreeLeafPage(pid, EXAMPLE_DATA, 0);
 		assertTrue(page.getLeftSiblingId() == null);
 	}
@@ -99,7 +86,8 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeLeafPage.getRightSiblingId()
 	 */
-	@Test public void getRightSiblingId() throws Exception {
+	@Test
+	public void getRightSiblingId() throws Exception {
 		BTreeLeafPage page = new BTreeLeafPage(pid, EXAMPLE_DATA, 0);
 		assertTrue(page.getRightSiblingId() == null);
 	}
@@ -107,7 +95,8 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeLeafPage.setParentId()
 	 */
-	@Test public void setParentId() throws Exception {
+	@Test
+	public void setParentId() throws Exception {
 		BTreeLeafPage page = new BTreeLeafPage(pid, EXAMPLE_DATA, 0);
 		BTreePageId id = new BTreePageId(pid.getTableId(), 1, BTreePageId.INTERNAL);
 		page.setParentId(id);
@@ -125,7 +114,8 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeLeafPage.setLeftSiblingId()
 	 */
-	@Test public void setLeftSiblingId() throws Exception {
+	@Test
+	public void setLeftSiblingId() throws Exception {
 		BTreeLeafPage page = new BTreeLeafPage(pid, EXAMPLE_DATA, 0);
 		BTreePageId id = new BTreePageId(pid.getTableId(), 1, BTreePageId.LEAF);
 		page.setLeftSiblingId(id);
@@ -143,7 +133,8 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeLeafPage.setRightSiblingId()
 	 */
-	@Test public void setRightSiblingId() throws Exception {
+	@Test
+	public void setRightSiblingId() throws Exception {
 		BTreeLeafPage page = new BTreeLeafPage(pid, EXAMPLE_DATA, 0);
 		BTreePageId id = new BTreePageId(pid.getTableId(), 1, BTreePageId.LEAF);
 		page.setRightSiblingId(id);
@@ -152,7 +143,8 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 		id = new BTreePageId(pid.getTableId() + 1, 1, BTreePageId.LEAF);
 		try {
 			page.setRightSiblingId(id);
-			throw new Exception("should not be able to set rightSiblingId to a page from a different table; expected DbException");
+			throw new Exception(
+					"should not be able to set rightSiblingId to a page from a different table; expected DbException");
 		} catch (DbException e) {
 			// explicitly ignored
 		}
@@ -161,7 +153,8 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeLeafPage.iterator()
 	 */
-	@Test public void testIterator() throws Exception {
+	@Test
+	public void testIterator() throws Exception {
 		BTreeLeafPage page = new BTreeLeafPage(pid, EXAMPLE_DATA, 0);
 		Iterator<Tuple> it = page.iterator();
 
@@ -188,7 +181,8 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeLeafPage.getNumEmptySlots()
 	 */
-	@Test public void getNumEmptySlots() throws Exception {
+	@Test
+	public void getNumEmptySlots() throws Exception {
 		BTreeLeafPage page = new BTreeLeafPage(pid, EXAMPLE_DATA, 0);
 		assertEquals(482, page.getNumEmptySlots());
 	}
@@ -196,7 +190,8 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeLeafPage.isSlotUsed()
 	 */
-	@Test public void getSlot() throws Exception {
+	@Test
+	public void getSlot() throws Exception {
 		BTreeLeafPage page = new BTreeLeafPage(pid, EXAMPLE_DATA, 0);
 
 		for (int i = 0; i < 20; ++i)
@@ -209,7 +204,8 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeLeafPage.isPageDirty()
 	 */
-	@Test public void testDirty() throws Exception {
+	@Test
+	public void testDirty() throws Exception {
 		TransactionId tid = new TransactionId();
 		BTreeLeafPage page = new BTreeLeafPage(pid, EXAMPLE_DATA, 0);
 		page.markPageDirty(true, tid);
@@ -225,8 +221,9 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeLeafPage.addTuple()
 	 */
-	@Test public void addTuple() throws Exception {
-		// create two blank pages -- one keyed on the first field, 
+	@Test
+	public void addTuple() throws Exception {
+		// create two blank pages -- one keyed on the first field,
 		// the second keyed on the second field
 		byte[] data = BTreeLeafPage.createEmptyPageData();
 		BTreeLeafPage page0 = new BTreeLeafPage(pid, data, 0);
@@ -247,14 +244,14 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 		// check that the tuples are ordered by field 0 in page0
 		Collections.sort(tuples, new TupleComparator(0));
 		Iterator<Tuple> it0 = page0.iterator();
-		for(Tuple tup : tuples) {
+		for (Tuple tup : tuples) {
 			assertTrue(tup.equals(it0.next()));
 		}
 
 		// check that the tuples are ordered by field 1 in page1
 		Collections.sort(tuples, new TupleComparator(1));
 		Iterator<Tuple> it1 = page1.iterator();
-		for(Tuple tup : tuples) {
+		for (Tuple tup : tuples) {
 			assertTrue(tup.equals(it1.next()));
 		}
 
@@ -267,9 +264,10 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 		for (int i = 0; i < free; ++i) {
 			Tuple addition = BTreeUtility.getBTreeTuple(i, 2);
 			page0.insertTuple(addition);
-			assertEquals(free-i-1, page0.getNumEmptySlots());
+			assertEquals(free - i - 1, page0.getNumEmptySlots());
 
-			// loop through the iterator to ensure that the tuple actually exists
+			// loop through the iterator to ensure that the tuple actually
+			// exists
 			// on the page
 			Iterator<Tuple> it = page0.iterator();
 			boolean found = false;
@@ -298,7 +296,7 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeLeafPage.deleteTuple() with false tuples
 	 */
-	@Test(expected=DbException.class)
+	@Test(expected = DbException.class)
 	public void deleteNonexistentTuple() throws Exception {
 		BTreeLeafPage page = new BTreeLeafPage(pid, EXAMPLE_DATA, 0);
 		page.deleteTuple(BTreeUtility.getBTreeTuple(2, 2));
@@ -307,7 +305,8 @@ public class BTreeLeafPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeLeafPage.deleteTuple()
 	 */
-	@Test public void deleteTuple() throws Exception {
+	@Test
+	public void deleteTuple() throws Exception {
 		BTreeLeafPage page = new BTreeLeafPage(pid, EXAMPLE_DATA, 0);
 		int free = page.getNumEmptySlots();
 

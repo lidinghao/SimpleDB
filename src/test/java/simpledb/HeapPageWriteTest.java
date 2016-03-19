@@ -18,119 +18,123 @@ import simpledb.systemtest.SystemTestUtil;
 
 public class HeapPageWriteTest extends SimpleDbTestBase {
 
-    private HeapPageId pid;
+	private HeapPageId pid;
 
-    /**
-     * Set up initial resources for each unit test.
-     */
-    @Before public void addTable() throws IOException {
-        this.pid = new HeapPageId(-1, -1);
-        Database.getCatalog().addTable(new SkeletonFile(-1, Utility.getTupleDesc(2)), SystemTestUtil.getUUID());
-    }
-    
-    /**
-     * Unit test for HeapPage.isPageDirty()
-     */
-    @Test public void testDirty() throws Exception {
-        TransactionId tid = new TransactionId();
-        HeapPage page = new HeapPage(pid, HeapPageReadTest.EXAMPLE_DATA);
-        page.markPageDirty(true, tid);
-        TransactionId dirtier = page.isPageDirty();
-        assertEquals(true, dirtier != null);
-        assertEquals(true, dirtier == tid);
+	/**
+	 * Set up initial resources for each unit test.
+	 */
+	@Before
+	public void addTable() throws IOException {
+		this.pid = new HeapPageId(-1, -1);
+		Database.getCatalog().addTable(new SkeletonFile(-1, Utility.getTupleDesc(2)), SystemTestUtil.getUUID());
+	}
 
-        page.markPageDirty(false, tid);
-        dirtier = page.isPageDirty();
-        assertEquals(false, dirtier != null);
-    }
+	/**
+	 * Unit test for HeapPage.isPageDirty()
+	 */
+	@Test
+	public void testDirty() throws Exception {
+		TransactionId tid = new TransactionId();
+		HeapPage page = new HeapPage(pid, HeapPageReadTest.EXAMPLE_DATA);
+		page.markPageDirty(true, tid);
+		TransactionId dirtier = page.isPageDirty();
+		assertEquals(true, dirtier != null);
+		assertEquals(true, dirtier == tid);
 
-    /**
-     * Unit test for HeapPage.addTuple()
-     */
-    @Test public void addTuple() throws Exception {
-        HeapPage page = new HeapPage(pid, HeapPageReadTest.EXAMPLE_DATA);
-        int free = page.getNumEmptySlots();
+		page.markPageDirty(false, tid);
+		dirtier = page.isPageDirty();
+		assertEquals(false, dirtier != null);
+	}
 
-        // NOTE(ghuo): this nested loop existence check is slow, but it
-        // shouldn't make a difference for n = 504 slots.
+	/**
+	 * Unit test for HeapPage.addTuple()
+	 */
+	@Test
+	public void addTuple() throws Exception {
+		HeapPage page = new HeapPage(pid, HeapPageReadTest.EXAMPLE_DATA);
+		int free = page.getNumEmptySlots();
 
-        for (int i = 0; i < free; ++i) {
-            Tuple addition = Utility.getHeapTuple(i, 2);
-            page.insertTuple(addition);
-            assertEquals(free-i-1, page.getNumEmptySlots());
+		// NOTE(ghuo): this nested loop existence check is slow, but it
+		// shouldn't make a difference for n = 504 slots.
 
-            // loop through the iterator to ensure that the tuple actually exists
-            // on the page
-            Iterator<Tuple >it = page.iterator();
-            boolean found = false;
-            while (it.hasNext()) {
-                Tuple tup = it.next();
-                if (TestUtil.compareTuples(addition, tup)) {
-                    found = true;
+		for (int i = 0; i < free; ++i) {
+			Tuple addition = Utility.getHeapTuple(i, 2);
+			page.insertTuple(addition);
+			assertEquals(free - i - 1, page.getNumEmptySlots());
 
-                    // verify that the RecordId is sane
-                    assertEquals(page.getId(), tup.getRecordId().getPageId());
-                    break;
-                }
-            }
-            assertTrue(found);
-        }
+			// loop through the iterator to ensure that the tuple actually
+			// exists
+			// on the page
+			Iterator<Tuple> it = page.iterator();
+			boolean found = false;
+			while (it.hasNext()) {
+				Tuple tup = it.next();
+				if (TestUtil.compareTuples(addition, tup)) {
+					found = true;
 
-        // now, the page should be full.
-        try {
-            page.insertTuple(Utility.getHeapTuple(0, 2));
-            throw new Exception("page should be full; expected DbException");
-        } catch (DbException e) {
-            // explicitly ignored
-        }
-    }
+					// verify that the RecordId is sane
+					assertEquals(page.getId(), tup.getRecordId().getPageId());
+					break;
+				}
+			}
+			assertTrue(found);
+		}
 
-    /**
-     * Unit test for HeapPage.deleteTuple() with false tuples
-     */
-    @Test(expected=DbException.class)
-        public void deleteNonexistentTuple() throws Exception {
-        HeapPage page = new HeapPage(pid, HeapPageReadTest.EXAMPLE_DATA);
-        page.deleteTuple(Utility.getHeapTuple(2, 2));
-    }
+		// now, the page should be full.
+		try {
+			page.insertTuple(Utility.getHeapTuple(0, 2));
+			throw new Exception("page should be full; expected DbException");
+		} catch (DbException e) {
+			// explicitly ignored
+		}
+	}
 
-    /**
-     * Unit test for HeapPage.deleteTuple()
-     */
-    @Test public void deleteTuple() throws Exception {
-        HeapPage page = new HeapPage(pid, HeapPageReadTest.EXAMPLE_DATA);
-        int free = page.getNumEmptySlots();
+	/**
+	 * Unit test for HeapPage.deleteTuple() with false tuples
+	 */
+	@Test(expected = DbException.class)
+	public void deleteNonexistentTuple() throws Exception {
+		HeapPage page = new HeapPage(pid, HeapPageReadTest.EXAMPLE_DATA);
+		page.deleteTuple(Utility.getHeapTuple(2, 2));
+	}
 
-        // first, build a list of the tuples on the page.
-        Iterator<Tuple> it = page.iterator();
-        LinkedList<Tuple> tuples = new LinkedList<Tuple>();
-        while (it.hasNext())
-            tuples.add(it.next());
-        Tuple first = tuples.getFirst();
+	/**
+	 * Unit test for HeapPage.deleteTuple()
+	 */
+	@Test
+	public void deleteTuple() throws Exception {
+		HeapPage page = new HeapPage(pid, HeapPageReadTest.EXAMPLE_DATA);
+		int free = page.getNumEmptySlots();
 
-        // now, delete them one-by-one from both the front and the end.
-        int deleted = 0;
-        while (tuples.size() > 0) {
-            page.deleteTuple(tuples.removeFirst());
-            page.deleteTuple(tuples.removeLast());
-            deleted += 2;
-            assertEquals(free + deleted, page.getNumEmptySlots());
-        }
+		// first, build a list of the tuples on the page.
+		Iterator<Tuple> it = page.iterator();
+		LinkedList<Tuple> tuples = new LinkedList<Tuple>();
+		while (it.hasNext())
+			tuples.add(it.next());
+		Tuple first = tuples.getFirst();
 
-        // now, the page should be empty.
-        try {
-            page.deleteTuple(first);
-            throw new Exception("page should be empty; expected DbException");
-        } catch (DbException e) {
-            // explicitly ignored
-        }
-    }
+		// now, delete them one-by-one from both the front and the end.
+		int deleted = 0;
+		while (tuples.size() > 0) {
+			page.deleteTuple(tuples.removeFirst());
+			page.deleteTuple(tuples.removeLast());
+			deleted += 2;
+			assertEquals(free + deleted, page.getNumEmptySlots());
+		}
 
-    /**
-     * JUnit suite target
-     */
-    public static junit.framework.Test suite() {
-        return new JUnit4TestAdapter(HeapPageWriteTest.class);
-    }
+		// now, the page should be empty.
+		try {
+			page.deleteTuple(first);
+			throw new Exception("page should be empty; expected DbException");
+		} catch (DbException e) {
+			// explicitly ignored
+		}
+	}
+
+	/**
+	 * JUnit suite target
+	 */
+	public static junit.framework.Test suite() {
+		return new JUnit4TestAdapter(HeapPageWriteTest.class);
+	}
 }
-

@@ -17,6 +17,7 @@ public class BTreeRootPtrPageTest extends SimpleDbTestBase {
 	private BTreePageId pid;
 
 	public static final byte[] EXAMPLE_DATA;
+
 	static {
 		// Identify the root page and page category
 		int root = 1;
@@ -34,7 +35,8 @@ public class BTreeRootPtrPageTest extends SimpleDbTestBase {
 	/**
 	 * Set up initial resources for each unit test.
 	 */
-	@Before public void addTable() throws Exception {
+	@Before
+	public void addTable() throws Exception {
 		this.pid = new BTreePageId(-1, 0, BTreePageId.ROOT_PTR);
 		Database.getCatalog().addTable(new SkeletonFile(-1, Utility.getTupleDesc(2)), SystemTestUtil.getUUID());
 	}
@@ -42,7 +44,8 @@ public class BTreeRootPtrPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeRootPtrPage.getId()
 	 */
-	@Test public void getId() throws Exception {
+	@Test
+	public void getId() throws Exception {
 		BTreeRootPtrPage page = new BTreeRootPtrPage(pid, EXAMPLE_DATA);
 		assertEquals(pid, page.getId());
 	}
@@ -50,7 +53,8 @@ public class BTreeRootPtrPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeRootPtrPage.getRootId()
 	 */
-	@Test public void getRootId() throws Exception {
+	@Test
+	public void getRootId() throws Exception {
 		BTreeRootPtrPage page = new BTreeRootPtrPage(pid, EXAMPLE_DATA);
 		assertEquals(new BTreePageId(pid.getTableId(), 1, BTreePageId.LEAF), page.getRootId());
 	}
@@ -58,7 +62,8 @@ public class BTreeRootPtrPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeRootPtrPage.setRootId()
 	 */
-	@Test public void setRootId() throws Exception {
+	@Test
+	public void setRootId() throws Exception {
 		BTreeRootPtrPage page = new BTreeRootPtrPage(pid, EXAMPLE_DATA);
 		BTreePageId id = new BTreePageId(pid.getTableId(), 1, BTreePageId.INTERNAL);
 		page.setRootId(id);
@@ -75,7 +80,8 @@ public class BTreeRootPtrPageTest extends SimpleDbTestBase {
 		id = new BTreePageId(pid.getTableId() + 1, 1, BTreePageId.INTERNAL);
 		try {
 			page.setRootId(id);
-			throw new Exception("should not be able to set rootId to a page from a different table; expected DbException");
+			throw new Exception(
+					"should not be able to set rootId to a page from a different table; expected DbException");
 		} catch (DbException e) {
 			// explicitly ignored
 		}
@@ -84,7 +90,8 @@ public class BTreeRootPtrPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeRootPtrPage.getHeaderId()
 	 */
-	@Test public void getHeaderId() throws Exception {
+	@Test
+	public void getHeaderId() throws Exception {
 		BTreeRootPtrPage page = new BTreeRootPtrPage(pid, EXAMPLE_DATA);
 		assertEquals(new BTreePageId(pid.getTableId(), 2, BTreePageId.HEADER), page.getHeaderId());
 	}
@@ -92,7 +99,8 @@ public class BTreeRootPtrPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeRootPtrPage.setHeaderId()
 	 */
-	@Test public void setHeaderId() throws Exception {
+	@Test
+	public void setHeaderId() throws Exception {
 		BTreeRootPtrPage page = new BTreeRootPtrPage(pid, EXAMPLE_DATA);
 		BTreePageId id = new BTreePageId(pid.getTableId(), 3, BTreePageId.HEADER);
 		page.setHeaderId(id);
@@ -109,7 +117,8 @@ public class BTreeRootPtrPageTest extends SimpleDbTestBase {
 		id = new BTreePageId(pid.getTableId() + 1, 1, BTreePageId.HEADER);
 		try {
 			page.setHeaderId(id);
-			throw new Exception("should not be able to set rootId to a page from a different table; expected DbException");
+			throw new Exception(
+					"should not be able to set rootId to a page from a different table; expected DbException");
 		} catch (DbException e) {
 			// explicitly ignored
 		}
@@ -118,7 +127,8 @@ public class BTreeRootPtrPageTest extends SimpleDbTestBase {
 	/**
 	 * Unit test for BTreeRootPtrPage.isPageDirty()
 	 */
-	@Test public void testDirty() throws Exception {
+	@Test
+	public void testDirty() throws Exception {
 		TransactionId tid = new TransactionId();
 		BTreeRootPtrPage page = new BTreeRootPtrPage(pid, EXAMPLE_DATA);
 		page.markPageDirty(true, tid);

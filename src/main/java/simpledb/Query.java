@@ -14,105 +14,105 @@ import java.util.*;
 
 public class Query implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    transient private DbIterator op;
-    transient private LogicalPlan logicalPlan;
-    TransactionId tid;
-    transient private boolean started = false;
+	transient private DbIterator op;
+	transient private LogicalPlan logicalPlan;
+	TransactionId tid;
+	transient private boolean started = false;
 
-    public TransactionId getTransactionId() {
-        return this.tid;
-    }
+	public TransactionId getTransactionId() {
+		return this.tid;
+	}
 
-    public void setLogicalPlan(LogicalPlan lp) {
-        this.logicalPlan = lp;
-    }
+	public void setLogicalPlan(LogicalPlan lp) {
+		this.logicalPlan = lp;
+	}
 
-    public LogicalPlan getLogicalPlan() {
-        return this.logicalPlan;
-    }
+	public LogicalPlan getLogicalPlan() {
+		return this.logicalPlan;
+	}
 
-    public void setPhysicalPlan(DbIterator pp) {
-        this.op = pp;
-    }
+	public void setPhysicalPlan(DbIterator pp) {
+		this.op = pp;
+	}
 
-    public DbIterator getPhysicalPlan() {
-        return this.op;
-    }
+	public DbIterator getPhysicalPlan() {
+		return this.op;
+	}
 
-    public Query(TransactionId t) {
-        tid = t;
-    }
+	public Query(TransactionId t) {
+		tid = t;
+	}
 
-    public Query(DbIterator root, TransactionId t) {
-        op = root;
-        tid = t;
-    }
+	public Query(DbIterator root, TransactionId t) {
+		op = root;
+		tid = t;
+	}
 
-    public void start() throws IOException, DbException,
-            TransactionAbortedException {
-        op.open();
+	public void start() throws IOException, DbException, TransactionAbortedException {
+		op.open();
 
-        started = true;
-    }
+		started = true;
+	}
 
-    public TupleDesc getOutputTupleDesc() {
-        return this.op.getTupleDesc();
-    }
+	public TupleDesc getOutputTupleDesc() {
+		return this.op.getTupleDesc();
+	}
 
-    /** @return true if there are more tuples remaining. */
-    public boolean hasNext() throws DbException, TransactionAbortedException {
-        return op.hasNext();
-    }
+	/**
+	 * @return true if there are more tuples remaining.
+	 */
+	public boolean hasNext() throws DbException, TransactionAbortedException {
+		return op.hasNext();
+	}
 
-    /**
-     * Returns the next tuple, or throws NoSuchElementException if the iterator
-     * is closed.
-     * 
-     * @return The next tuple in the iterator
-     * @throws DbException
-     *             If there is an error in the database system
-     * @throws NoSuchElementException
-     *             If the iterator has finished iterating
-     * @throws TransactionAbortedException
-     *             If the transaction is aborted (e.g., due to a deadlock)
-     */
-    public Tuple next() throws DbException, NoSuchElementException,
-            TransactionAbortedException {
-        if (!started)
-            throw new DbException("Database not started.");
+	/**
+	 * Returns the next tuple, or throws NoSuchElementException if the iterator
+	 * is closed.
+	 * 
+	 * @return The next tuple in the iterator
+	 * @throws DbException
+	 *             If there is an error in the database system
+	 * @throws NoSuchElementException
+	 *             If the iterator has finished iterating
+	 * @throws TransactionAbortedException
+	 *             If the transaction is aborted (e.g., due to a deadlock)
+	 */
+	public Tuple next() throws DbException, NoSuchElementException, TransactionAbortedException {
+		if (!started)
+			throw new DbException("Database not started.");
 
-        return op.next();
-    }
+		return op.next();
+	}
 
-    /** Close the iterator */
-    public void close() throws IOException {
-        op.close();
-        started = false;
-    }
+	/** Close the iterator */
+	public void close() throws IOException {
+		op.close();
+		started = false;
+	}
 
-    public void execute() throws IOException, DbException, TransactionAbortedException {
-        TupleDesc td = this.getOutputTupleDesc();
+	public void execute() throws IOException, DbException, TransactionAbortedException {
+		TupleDesc td = this.getOutputTupleDesc();
 
-        String names = "";
-        for (int i = 0; i < td.numFields(); i++) {
-            names += td.getFieldName(i) + "\t";
-        }
-        System.out.println(names);
-        for (int i = 0; i < names.length() + td.numFields() * 4; i++) {
-            System.out.print("-");
-        }
-        System.out.println("");
+		String names = "";
+		for (int i = 0; i < td.numFields(); i++) {
+			names += td.getFieldName(i) + "\t";
+		}
+		System.out.println(names);
+		for (int i = 0; i < names.length() + td.numFields() * 4; i++) {
+			System.out.print("-");
+		}
+		System.out.println("");
 
-        this.start();
-        int cnt = 0;
-        while (this.hasNext()) {
-            Tuple tup = this.next();
-            System.out.println(tup);
-            cnt++;
-        }
-        System.out.println("\n " + cnt + " rows.");
-        this.close();
-    }
+		this.start();
+		int cnt = 0;
+		while (this.hasNext()) {
+			Tuple tup = this.next();
+			System.out.println(tup);
+			cnt++;
+		}
+		System.out.println("\n " + cnt + " rows.");
+		this.close();
+	}
 }
