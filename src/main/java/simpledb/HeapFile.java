@@ -130,8 +130,7 @@ public class HeapFile implements DbFile {
 		ArrayList<Page> affected = new ArrayList<Page>();
 
 		for (int curPage = 0; curPage < numPages; curPage++) {
-			HeapPage page = (HeapPage) Database.getBufferPool().getPage(tid, new HeapPageId(tableId, curPage),
-					Permissions.READ_WRITE);
+			HeapPage page = (HeapPage) Database.getBufferPool().getPage(tid, new HeapPageId(tableId, curPage), null);
 			if (page.getNumEmptySlots() > 0) {
 				page.insertTuple(t);
 				affected.add(page);
@@ -151,7 +150,7 @@ public class HeapFile implements DbFile {
 	public ArrayList<Page> deleteTuple(TransactionId tid, Tuple t) throws DbException, TransactionAbortedException {
 		// some code goes here
 		BufferPool pool = Database.getBufferPool();
-		HeapPage page = (HeapPage) pool.getPage(tid, t.getRecordId().getPageId(), Permissions.READ_WRITE);
+		HeapPage page = (HeapPage) pool.getPage(tid, t.getRecordId().getPageId(), null);
 		page.deleteTuple(t);
 		ArrayList<Page> affected = new ArrayList<Page>();
 		affected.add(page);
@@ -182,19 +181,19 @@ public class HeapFile implements DbFile {
 			// TODO Auto-generated method stub
 			curPage = 0;
 			BufferPool pool = Database.getBufferPool();
-			HeapPage page = (HeapPage) pool.getPage(tid, new HeapPageId(this.tableId, curPage), Permissions.READ_WRITE);
+			HeapPage page = (HeapPage) pool.getPage(tid, new HeapPageId(this.tableId, curPage), null);
 			tupleIter = page.iterator();
 		}
 
 		@Override
 		public boolean hasNext() throws DbException, TransactionAbortedException {
 			// TODO Auto-generated method stub
-			if (tupleIter == null) {
+			if(tupleIter == null){
 				return false; // not open
 			}
 			if (next == null)
-				next = fetchNext();
-			return next != null;
+	            next = fetchNext();
+	        return next != null;
 		}
 
 		@Override
@@ -204,28 +203,28 @@ public class HeapFile implements DbFile {
 				throw new NoSuchElementException();
 			}
 			if (next == null) {
-				next = fetchNext();
-				if (next == null)
-					throw new NoSuchElementException();
-			}
+	            next = fetchNext();
+	            if (next == null)
+	                throw new NoSuchElementException();
+	        }
 
-			Tuple result = next;
-			next = null;
-			return result;
+	        Tuple result = next;
+	        next = null;
+	        return result;
 		}
 
 		private Tuple fetchNext() throws TransactionAbortedException, DbException {
 			// TODO Auto-generated method stub
 
-			if (tupleIter.hasNext()) {
+			if (tupleIter.hasNext()){
 				return tupleIter.next();
 			}
-			while (curPage + 1 < numPages) {
-				curPage++;
-				HeapPage page = (HeapPage) Database.getBufferPool().getPage(tid, new HeapPageId(this.tableId, curPage),
-						Permissions.READ_WRITE);
+			while (curPage  + 1 < numPages) {
+				curPage ++;
+				HeapPage page = (HeapPage) Database.getBufferPool().getPage(tid,
+						new HeapPageId(this.tableId, curPage), null);
 				tupleIter = page.iterator();
-				if (tupleIter.hasNext()) {
+				if(tupleIter.hasNext()){
 					return tupleIter.next();
 				}
 			}

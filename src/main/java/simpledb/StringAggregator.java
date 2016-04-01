@@ -89,12 +89,13 @@ public class StringAggregator implements Aggregator {
 		private static final long serialVersionUID = 1L;
 		private Iterator<Field> keyIter;
 		private StringAggregator stringAggregator;
-
+		
 		StringAggregatorInterator(StringAggregator stringAggregator) {
 			this.stringAggregator = stringAggregator;
 			this.keyIter = stringAggregator.aggregatedCount.keySet().iterator();
 		}
 
+		
 		@Override
 		public void rewind() throws DbException, TransactionAbortedException {
 			// TODO Auto-generated method stub
@@ -128,7 +129,7 @@ public class StringAggregator implements Aggregator {
 		@Override
 		public void setChildren(DbIterator[] children) {
 			// TODO Auto-generated method stub
-
+			
 		}
 
 		@Override
@@ -136,8 +137,9 @@ public class StringAggregator implements Aggregator {
 			// TODO Auto-generated method stub
 			return stringAggregator.tDesc;
 		}
-
+		
 	}
+
 
 	/**
 	 * Create a DbIterator over group aggregate results.

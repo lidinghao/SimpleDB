@@ -8,7 +8,7 @@ import java.io.Serializable;
 public class Predicate implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-
+	
 	private int field;
 	private Op op;
 	private Field operand;

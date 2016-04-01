@@ -6,36 +6,31 @@ import java.util.NoSuchElementException;
 public abstract class AbstractDbFileIterator implements DbFileIterator {
 
 	public boolean hasNext() throws DbException, TransactionAbortedException {
-		if (next == null)
-			next = readNext();
-		return next != null;
-	}
+        if (next == null) next = readNext();
+        return next != null;
+    }
 
-	public Tuple next() throws DbException, TransactionAbortedException, NoSuchElementException {
-		if (next == null) {
-			next = readNext();
-			if (next == null)
-				throw new NoSuchElementException();
-		}
+    public Tuple next() throws DbException, TransactionAbortedException,
+            NoSuchElementException {
+        if (next == null) {
+            next = readNext();
+            if (next == null) throw new NoSuchElementException();
+        }
 
-		Tuple result = next;
-		next = null;
-		return result;
-	}
+        Tuple result = next;
+        next = null;
+        return result;
+    }
 
-	/** If subclasses override this, they should call super.close(). */
-	public void close() {
-		// Ensures that a future call to next() will fail
-		next = null;
-	}
+    /** If subclasses override this, they should call super.close(). */
+    public void close() {
+        // Ensures that a future call to next() will fail
+        next = null;
+    }
 
-	/**
-	 * Reads the next tuple from the underlying source.
-	 * 
-	 * @return the next Tuple in the iterator, null if the iteration is
-	 *         finished.
-	 */
-	protected abstract Tuple readNext() throws DbException, TransactionAbortedException;
+    /** Reads the next tuple from the underlying source.
+    @return the next Tuple in the iterator, null if the iteration is finished. */
+    protected abstract Tuple readNext() throws DbException, TransactionAbortedException;
 
-	private Tuple next = null;
+    private Tuple next = null;
 }

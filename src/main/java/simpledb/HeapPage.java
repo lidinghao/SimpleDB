@@ -18,7 +18,7 @@ public class HeapPage implements Page {
 	final byte header[];
 	final Tuple tuples[];
 	final int numSlots;
-
+	
 	private TransactionId pageDirtyTid;
 
 	byte[] oldData;
@@ -272,12 +272,7 @@ public class HeapPage implements Page {
 		}
 
 		for (int i = 0; i < tuples.length; i++) {
-			if (tuples[i].getRecordId().equals(t.getRecordId())) { // how to
-																	// test if
-																	// two
-																	// tuples
-																	// are
-																	// equal?
+			if (tuples[i].getRecordId().equals(t.getRecordId())) { // how to test if two tuples are equal?
 				if (isSlotUsed(i)) {
 					markSlotUsed(i, false); // delete a tuple
 				} else {
@@ -317,10 +312,10 @@ public class HeapPage implements Page {
 
 			if (isSlotUsed(i) == false) {
 				markSlotUsed(i, true); // delete a tuple
-				t.setRecordId(new RecordId(getId(), i)); // update RecordId
+				t.setRecordId(new RecordId(getId(),i)); // update RecordId
 				tuples[i] = t;
 				return;
-			}
+			} 
 		}
 		throw new DbException("the page is full (no empty slots)");
 	}
@@ -331,7 +326,7 @@ public class HeapPage implements Page {
 	 */
 	public void markPageDirty(boolean dirty, TransactionId tid) {
 		// some code goes here
-		if (dirty) {
+		if (dirty){
 			pageDirtyTid = tid;
 		} else {
 			pageDirtyTid = null;

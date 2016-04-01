@@ -20,8 +20,8 @@ public class Aggregate extends Operator {
 	 * Constructor.
 	 * 
 	 * Implementation hint: depending on the type of afield, you will want to
-	 * construct an {@link IntegerAggregator} or {@link StringAggregator} to
-	 * help you with your implementation of readNext().
+	 * construct an {@link IntegerAggregator} or {@link StringAggregator} to help
+	 * you with your implementation of readNext().
 	 * 
 	 * 
 	 * @param child
@@ -42,8 +42,8 @@ public class Aggregate extends Operator {
 		this.aop = aop;
 		Aggregator agg = null;
 		Type type = null;
-		if (gfield != -1) {
-			type = child.getTupleDesc().getFieldType(gfield);
+		if (gfield != -1){
+			type =  child.getTupleDesc().getFieldType(gfield);
 		}
 		if (child.getTupleDesc().getFieldType(afield) == Type.INT_TYPE) {
 			agg = new IntegerAggregator(gfield, type, afield, aop);
